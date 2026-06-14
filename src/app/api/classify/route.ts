@@ -164,13 +164,18 @@ function detectCrisis(text: string): boolean {
 type CrisisType = 'self-harm' | 'violence-others' | 'domestic' | 'medical' | 'general';
 
 function detectCrisisType(text: string): CrisisType {
-  // Check violence toward others FIRST (most urgent for safety)
-  const violencePatterns = [
-    /\b(kill|murder|hurt|harm|shoot|stab)\s+(someone|my|a|him|her|them|people|friend|family|partner|spouse|boss|child|kids?)\b/i,
-    /i\s+(wanna|want\s+to|will|am\s+going\s+to)\s+(kill|murder|hurt|harm|shoot|stab)\b/i,
-    /gonna\s+(kill|murder|hurt|harm|shoot|stab)\b/i,
+  // Self-harm / suicidal MUST be checked FIRST
+  // "I want to kill myself" must be self-harm, NOT violence-others
+  const selfHarmPatterns = [
+    /suicid/i, /kill\s+myself/i, /end\s+it\s+all/i, /end\s+my\s+life/i,
+    /want\s+to\s+die/i, /self[- ]?harm/i, /harm\s+myself/i, /hurt\s+myself/i,
+    /overdose/i, /hang\s+myself/i, /slit\s+my\s+wrists/i,
+    /better\s+off\s+dead/i, /not\s+worth\s+living/i,
+    /take\s+my\s+life/i, /can'?t\s+take\s+(this|it)/i,
+    /no\s+(reason|point)\s+to\s+live/i, /don'?t\s+want\s+to\s+live/i,
+    /want\s+to\s+disappear/i, /give\s+up\s+on\s+life/i,
   ];
-  if (violencePatterns.some(p => p.test(text))) return 'violence-others';
+  if (selfHarmPatterns.some(p => p.test(text))) return 'self-harm';
 
   // Domestic violence
   const domesticPatterns = [
@@ -181,6 +186,14 @@ function detectCrisisType(text: string): CrisisType {
   ];
   if (domesticPatterns.some(p => p.test(text))) return 'domestic';
 
+  // Violence toward others (checked AFTER self-harm to prevent misclassification)
+  const violencePatterns = [
+    /\b(kill|murder|hurt|harm|shoot|stab)\s+(someone|him|her|them|people|friend|family|partner|spouse|boss|child|kids?)\b/i,
+    /i\s+(wanna|want\s+to|will|am\s+going\s+to)\s+(kill|murder|hurt|harm|shoot|stab)\s+(?!myself)\b/i,
+    /gonna\s+(kill|murder|hurt|harm|shoot|stab)\s+(?!myself)\b/i,
+  ];
+  if (violencePatterns.some(p => p.test(text))) return 'violence-others';
+
   // Medical emergency
   const medicalPatterns = [
     /i'?m\s+dying\b(?!\s+(for|to|of|from|laughing|laugh))/i,
@@ -189,15 +202,6 @@ function detectCrisisType(text: string): CrisisType {
     /i\s+can'?t\s+breathe/i,
   ];
   if (medicalPatterns.some(p => p.test(text))) return 'medical';
-
-  // Self-harm / suicidal
-  const selfHarmPatterns = [
-    /suicid/i, /kill\s+myself/i, /end\s+it\s+all/i, /end\s+my\s+life/i,
-    /want\s+to\s+die/i, /self[- ]?harm/i, /harm\s+myself/i, /hurt\s+myself/i,
-    /overdose/i, /hang\s+myself/i, /slit\s+my\s+wrists/i,
-    /better\s+off\s+dead/i, /not\s+worth\s+living/i,
-  ];
-  if (selfHarmPatterns.some(p => p.test(text))) return 'self-harm';
 
   return 'general';
 }
