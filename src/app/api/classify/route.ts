@@ -504,7 +504,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Layer 1: Crisis Detection (hardcoded, deterministic)
+    // Layer 1: Crisis Detection FIRST (hardcoded, deterministic, ALWAYS runs)
+    // This must run before vague detection so "help I'm suicidal" triggers crisis, not vague
     const isCrisis = detectCrisis(text);
 
     if (isCrisis) {
@@ -582,7 +583,39 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Layer 2: AI Classification (BART if available, keyword if not — ALWAYS HONEST)
+    // ── Layer 2: Vague / greeting input detection ──
+    // BART zero-shot always returns high scores even on meaningless input.
+    // We intercept vague input BEFORE calling BART to avoid false confidence.
+    // Crisis detection already ran above, so "help I'm suicidal" → crisis, not vague.
+    const VAGUE_PATTERNS = [
+      /^(hey|hi|hello|yo|sup|what'?s up|hola|coucou|bonjour|salut)[\s!.?]*$/i,
+      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|i don'?t know)[\s!.?]*$/i,
+      /^.{0,3}$/,  // 3 chars or less (after trim) — too short for meaningful classification
+      /^(help|need help|i need help)[\s!.?]*$/i,  // too generic — no category signal
+    ];
+    const isVague = VAGUE_PATTERNS.some(p => p.test(text.trim()));
+
+    if (isVague) {
+      return NextResponse.json({
+        isCrisis: false,
+        isVague: true,
+        categories: [],
+        needsClarification: true,
+        clarificationMessage: "Could you tell us more about your situation? For example: 'I lost my job and need help with rent' or 'I'm looking for food assistance for my family.'",
+        clarificationQuestions: [
+          { question: 'What kind of help are you looking for?', options: ['Housing / shelter', 'Food assistance', 'Mental health support', 'Employment / job help', 'Legal aid', 'Healthcare', 'Veteran services', 'Senior services'], id: 'vague_category' }
+        ],
+        model: 'Vague input detected — skipped BART to avoid false confidence',
+        classificationSource: 'vague-detection',
+        hasLocation: userLat !== undefined,
+        outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
+        serviceArea: cityLabel + ' metro area',
+        cityId,
+        cityLabel,
+      });
+    }
+
+    // Layer 3: AI Classification (BART if available, keyword if not — ALWAYS HONEST)
     const { results: classifications, debug: classificationDebug } = await classifyWithBART(text);
 
     const classificationSource = classifications.length > 0 ? classifications[0].source : 'keyword';

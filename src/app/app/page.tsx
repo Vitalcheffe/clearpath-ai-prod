@@ -69,7 +69,7 @@ interface ClassifyResponse {
   clarificationMessage: string | null
   crisisLines?: CrisisLine[]
   model: string
-  classificationSource?: 'bart' | 'keyword'
+  classificationSource?: 'bart' | 'keyword' | 'vague-detection'
   hasLocation?: boolean
   outsideServiceArea?: boolean
   serviceArea?: string
@@ -506,7 +506,12 @@ function QueryResultBlock({ entry, onClarify }: { entry: QueryEntry; onClarify: 
         {!result.isCrisis && result.classificationSource && (
           <div className="space-y-2 mb-1">
             <div className="flex items-center gap-2">
-              {result.classificationSource === 'bart' ? (
+              {result.classificationSource === 'vague-detection' ? (
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-blue-600 bg-blue-50/60 px-2.5 py-1 rounded-lg border border-blue-100/40">
+                  <HelpCircle className="w-3 h-3" />
+                  Need more detail — tell us about your situation
+                </span>
+              ) : result.classificationSource === 'bart' ? (
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50/60 px-2.5 py-1 rounded-lg border border-emerald-100/40">
                   <Layers className="w-3 h-3" />
                   Classified by BART-large-MNLI
