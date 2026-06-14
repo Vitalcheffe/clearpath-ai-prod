@@ -4,7 +4,7 @@
 
 **USAII Global AI Hackathon 2026 — Community Track**
 
-A community resource navigator that shows calibrated confidence instead of hiding uncertainty. Because a confident wrong answer is more dangerous than no answer at all.
+A multi-city community resource navigator that shows calibrated confidence instead of hiding uncertainty. Because a confident wrong answer is more dangerous than no answer at all.
 
 ---
 
@@ -22,6 +22,25 @@ ClearPath AI is a 6-layer community resource navigator:
 4. **Clarification questions** → When confidence < 70%, ask don't guess
 5. **Transparent display** → Why + What Else + How Confident for every result
 6. **Human escalation** → 211 navigator connection when AI can't help
+
+## Multi-City Support
+
+ClearPath AI serves **6 major U.S. cities** with auto-detection via geolocation:
+
+| City | ID | Metro Radius |
+|------|----|-------------|
+| Houston, TX | `houston` | 25 mi |
+| New York, NY | `newyork` | 20 mi |
+| Los Angeles, CA | `losangeles` | 25 mi |
+| Chicago, IL | `chicago` | 20 mi |
+| Dallas, TX | `dallas` | 20 mi |
+| Miami, FL | `miami` | 20 mi |
+
+**How it works:**
+- User's browser geolocation → nearest supported city (auto-detected)
+- User can manually select any city via the "Change city" dropdown
+- National resources (988, Crisis Text Line, VA Benefits, etc.) are shown regardless of location
+- Users outside all service areas still get national resources + nearest city resources
 
 ## Core Differentiator
 
@@ -56,6 +75,7 @@ npm run dev
 | Low Confidence | "I need help with my situation" → Clarification flow, 43% → 83% |
 | Senior | "I'm 78 and need groceries delivered" → 94% confidence, Meals on Wheels |
 | Veteran | "I'm a veteran with PTSD and housing issues" → VA-specific programs prioritized |
+| Multi-City | Select "New York" → NYC-specific resources (NYCHA, Coalition for the Homeless, NYC Well) |
 
 ## Team
 

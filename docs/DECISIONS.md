@@ -192,4 +192,34 @@
 
 ---
 
+## ADR-008: Multi-City Support with Auto-Detection via Geolocation
+
+**Date:** June 2026  
+**Status:** Decided  
+**Context:** ClearPath AI initially served only Houston, TX. For the hackathon, multi-city support would demonstrate scalability and make the product more impressive to judges. However, curating resource data for multiple cities requires significant effort, and there is no free, reliable API for real-time community resource data by city.
+
+**Decision:** Expand to 6 major U.S. cities (Houston, New York, Los Angeles, Chicago, Dallas, Miami) with auto-detection via browser geolocation, plus national resources as a universal fallback.
+
+**Rationale:**
+- **Scalability demonstration**: Judges value products that can scale beyond a single city. Multi-city support shows ClearPath AI is not a Houston-only prototype but a nationally deployable platform.
+- **Geolocation already exists**: The app already uses `navigator.geolocation` for distance calculations. Extending this to auto-detect the nearest supported city is a natural evolution.
+- **National resources are universal**: Crisis lines (988, DV Hotline), federal programs (SNAP, VA Benefits, Healthcare.gov), and national organizations (NAMI, United Way 211) work everywhere in the US. These serve as a meaningful fallback for unsupported areas.
+- **Curated data over API dependency**: There is no free, reliable API for community resource data by city. 211 APIs are not publicly available. Curating real, verified resources for 6 cities is more honest and reliable than depending on an external API that could fail during the demo.
+- **6 cities cover ~15% of the US population**: Houston, NYC, LA, Chicago, Dallas, and Miami together serve over 50 million people. This is a meaningful coverage for an MVP.
+- **Manual city selector as fallback**: If geolocation fails or is denied, users can manually select their city from a dropdown. This ensures the product is usable even without GPS.
+
+**Consequences:**
+- Resource data must be curated manually for each city. Currently ~10-12 resources per city + 10 national resources = ~80 total. This is manageable but not scalable to hundreds of cities without automation.
+- No real-time verification of resource availability. Hours, phone numbers, and eligibility could change. We mitigate by dating each resource's "verified" field.
+- The `findNearestCity()` function uses Haversine distance to city centers, which may assign users to a city whose metro area they're technically outside of (e.g., someone in Newark might be assigned to NYC). This is acceptable for the MVP.
+- Users in rural areas or unsupported cities see national resources + the nearest city's resources. The "outside service area" warning is shown with a prompt to dial 211 for local help.
+
+**Alternatives Considered:**
+- Single city (Houston only): Simpler but less impressive for a hackathon. Does not demonstrate scalability.
+- API-based resource lookup (211.org, Aunt Bertha): No free, reliable API available. Would add external dependency that could fail during demo.
+- All US cities via zip code lookup: Would require a massive database of 300,000+ resources. Not feasible for a 7-day hackathon.
+- Dynamic city addition (user-submitted resources): Quality control risk. Unverified resources could harm vulnerable users. Violates our "verified resources only" principle.
+
+---
+
 *As new decisions are made during the build week, they should be documented here using the same format. Every decision must include: context, decision, rationale, consequences, and alternatives considered.*

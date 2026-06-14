@@ -73,6 +73,8 @@ interface ClassifyResponse {
   hasLocation?: boolean
   outsideServiceArea?: boolean
   serviceArea?: string
+  cityId?: string
+  cityLabel?: string
   debug?: DebugInfo
 }
 
@@ -583,8 +585,8 @@ function QueryResultBlock({ entry, onClarify }: { entry: QueryEntry; onClarify: 
           <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-amber-50/60 border border-amber-100/40">
             <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-[12px] text-amber-800 font-semibold leading-snug">You appear to be outside our service area ({result.serviceArea || 'Houston, TX'}).</p>
-              <p className="text-[11px] text-amber-600 mt-1 leading-relaxed">These resources are located in Houston but may still be helpful as reference.</p>
+              <p className="text-[12px] text-amber-800 font-semibold leading-snug">You appear to be outside our service area ({result.cityLabel || result.serviceArea || 'supported cities'}).</p>
+              <p className="text-[11px] text-amber-600 mt-1 leading-relaxed">Showing national resources and resources from the nearest supported city. For local help, dial 211.</p>
             </div>
           </div>
         )}
@@ -607,6 +609,24 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationStatus, setLocationStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle')
 
+  // Multi-city selection
+  const [selectedCityId, setSelectedCityId] = useState<string | null>(null)
+  const [detectedCityLabel, setDetectedCityLabel] = useState<string>('Houston, TX')
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false)
+
+  const SUPPORTED_CITIES = [
+    { id: 'houston', label: 'Houston, TX' },
+    { id: 'newyork', label: 'New York, NY' },
+    { id: 'losangeles', label: 'Los Angeles, CA' },
+    { id: 'chicago', label: 'Chicago, IL' },
+    { id: 'dallas', label: 'Dallas, TX' },
+    { id: 'miami', label: 'Miami, FL' },
+  ]
+
+  const currentCityLabel = selectedCityId
+    ? SUPPORTED_CITIES.find(c => c.id === selectedCityId)?.label || detectedCityLabel
+    : detectedCityLabel
+
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationStatus('denied')
@@ -617,6 +637,17 @@ export default function Home() {
       (position) => {
         setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude })
         setLocationStatus('granted')
+        // Auto-detect city from coordinates (simple bounding — server does the real work)
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+        // Rough city detection for display; server uses findNearestCity() for accuracy
+        if (lat > 40 && lat < 41 && lng > -75 && lng < -73) setDetectedCityLabel('New York, NY')
+        else if (lat > 33 && lat < 35 && lng > -119 && lng < -117) setDetectedCityLabel('Los Angeles, CA')
+        else if (lat > 41 && lat < 42.5 && lng > -88 && lng < -87) setDetectedCityLabel('Chicago, IL')
+        else if (lat > 32 && lat < 33.5 && lng > -97.5 && lng < -96) setDetectedCityLabel('Dallas, TX')
+        else if (lat > 25 && lat < 26.5 && lng > -81 && lng < -79.5) setDetectedCityLabel('Miami, FL')
+        else if (lat > 29 && lat < 30.5 && lng > -96 && lng < -94.5) setDetectedCityLabel('Houston, TX')
+        else setDetectedCityLabel('Nearest supported city')
       },
       () => setLocationStatus('denied'),
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
@@ -629,6 +660,14 @@ export default function Home() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [queries, isLoading])
+
+  // Close city dropdown on outside click
+  useEffect(() => {
+    if (!cityDropdownOpen) return
+    const handleClick = () => setCityDropdownOpen(false)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [cityDropdownOpen])
 
   // Main handler: send text to /api/classify
   const handleSend = useCallback(async (text: string) => {
@@ -643,6 +682,9 @@ export default function Home() {
       if (userLocation) {
         requestBody.lat = userLocation.lat
         requestBody.lng = userLocation.lng
+      }
+      if (selectedCityId) {
+        requestBody.cityId = selectedCityId
       }
 
       const res = await fetch('/api/classify', {
@@ -670,6 +712,13 @@ export default function Home() {
 
       const data: ClassifyResponse = await res.json()
       setIsLoading(false)
+      // Update city info from server response (auto-detected via geolocation)
+      if (data.cityId && !selectedCityId) {
+        setSelectedCityId(data.cityId)
+      }
+      if (data.cityLabel && !selectedCityId) {
+        setDetectedCityLabel(data.cityLabel)
+      }
       setQueries(prev => [...prev, {
         id: nextId.current++,
         query: userText,
@@ -752,19 +801,53 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ─── SERVICE AREA BANNER ─── */}
+      {/* ─── SERVICE AREA BANNER WITH CITY SELECTOR ─── */}
       <div className="shrink-0">
         <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-3">
-          <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50/60 border border-blue-100/40">
+          <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50/60 border border-blue-100/40 flex-wrap">
             <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-            <span className="text-[12px] text-blue-700 font-medium">Serving the <span className="font-bold">Houston, TX metro area</span></span>
-            {locationStatus === 'idle' && (
-              <button onClick={requestLocation} className="ml-2 inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-100/60 rounded-md hover:bg-blue-100 transition-colors">
+            <span className="text-[12px] text-blue-700 font-medium">Serving the <span className="font-bold">{currentCityLabel}</span> metro area</span>
+            
+            {/* City selector dropdown */}
+            <div className="relative ml-1">
+              <button 
+                onClick={(e) => { e.stopPropagation(); setCityDropdownOpen(!cityDropdownOpen) }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-100/60 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                Change city
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              {cityDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                  {SUPPORTED_CITIES.map(city => (
+                    <button
+                      key={city.id}
+                      onClick={() => {
+                        setSelectedCityId(city.id)
+                        setDetectedCityLabel(city.label)
+                        setCityDropdownOpen(false)
+                      }}
+                      className={`w-full text-left px-3 py-2 text-[12px] hover:bg-blue-50 transition-colors ${
+                        (selectedCityId === city.id || (!selectedCityId && city.id === 'houston')) ? 'text-blue-700 font-semibold bg-blue-50/50' : 'text-gray-700'
+                      }`}
+                    >
+                      {city.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {locationStatus === 'idle' && !userLocation && (
+              <button onClick={requestLocation} className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-100/60 rounded-md hover:bg-blue-100 transition-colors">
                 Use my location
               </button>
             )}
             {locationStatus === 'granted' && (
-              <span className="ml-2 text-[10px] text-emerald-500 font-semibold">Location shared</span>
+              <span className="ml-1 text-[10px] text-emerald-500 font-semibold">Location detected</span>
+            )}
+            {locationStatus === 'requesting' && (
+              <span className="ml-1 text-[10px] text-blue-500 font-semibold animate-pulse">Detecting...</span>
             )}
           </div>
         </div>
@@ -778,7 +861,7 @@ export default function Home() {
           <div className="space-y-3">
             <div className="text-center mb-6">
               <h1 className="text-[24px] font-bold text-gray-900 tracking-tight">What do you need help with?</h1>
-              <p className="text-[14px] text-gray-400 mt-2">Describe your situation and we&apos;ll match you with verified community resources in Houston.</p>
+              <p className="text-[14px] text-gray-400 mt-2">Describe your situation and we&apos;ll match you with verified community resources in {currentCityLabel}.</p>
             </div>
             {starters.map((s, i) => (
               <SuggestionCard key={s.id} s={s} index={i} onSelect={handleSelectStarter} />

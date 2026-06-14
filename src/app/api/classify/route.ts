@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { HfInference } from "@huggingface/inference";
-import { HOUSTON_RESOURCES, RESOURCES_BY_CATEGORY } from "@/data/resources";
+import { HOUSTON_RESOURCES, RESOURCES_BY_CATEGORY, findNearestCity, getResourcesByCategoryForCity, SUPPORTED_CITIES, NATIONAL_RESOURCES, type CityMatch, type SupportedCity } from "@/data/resources";
 
 // ─── Configuration ─────────────────────────────────────────
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
@@ -141,10 +141,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Crisis Support": "#dc2626",
 };
 
-// ─── HAVERSINE DISTANCE + SMART DISPLAY ───
-const HOUSTON_LAT = 29.7604;
-const HOUSTON_LNG = -95.3698;
-const HOUSTON_METRO_RADIUS_MI = 25;
+// ─── MULTI-CITY GEOLOCATION ───
+// City selection: (1) explicit cityId param, (2) auto-detect from lat/lng, (3) default Houston
+// Haversine distance calculation lives in resources.ts — reused here for display logic
 const EARTH_RADIUS_MI = 3958.8;
 
 function haversineMi(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -154,10 +153,6 @@ function haversineMi(lat1: number, lng1: number, lat2: number, lng2: number): nu
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return EARTH_RADIUS_MI * c;
-}
-
-function isOutsideServiceArea(userLat: number, userLng: number): boolean {
-  return haversineMi(userLat, userLng, HOUSTON_LAT, HOUSTON_LNG) > 100;
 }
 
 // ─── Crisis Detection ──────────────────────────────────────
@@ -435,26 +430,35 @@ function keywordClassify(text: string): ClassificationResult[] {
   return results.filter((r) => r.score > 0.3);
 }
 
-// ─── Build resources for a category ───
-function getResourcesForCategory(category: string, userLat?: number, userLng?: number) {
-  const dbResources = RESOURCES_BY_CATEGORY[category] || [];
+// ─── Build resources for a category (multi-city) ───
+// Set of national resource names for fast lookup
+const NATIONAL_NAMES = new Set(NATIONAL_RESOURCES.map(r => r.name))
+
+function getResourcesForCategory(category: string, cityId: string, userLat?: number, userLng?: number) {
+  const cityCategories = getResourcesByCategoryForCity(cityId);
+  const dbResources = cityCategories[category] || [];
+  const city = SUPPORTED_CITIES.find(c => c.id === cityId);
+  const cityLabel = city?.label || cityId;
+
   return dbResources.map(r => {
     let distance: string | null = null;
-    if (userLat !== undefined && userLng !== undefined) {
-      const miles = haversineMi(userLat, userLng, HOUSTON_LAT, HOUSTON_LNG);
-      if (miles <= HOUSTON_METRO_RADIUS_MI) {
+    if (userLat !== undefined && userLng !== undefined && city) {
+      const miles = haversineMi(userLat, userLng, city.lat, city.lng);
+      if (miles <= city.metroRadiusMi) {
         distance = `${miles.toFixed(1)} mi`;
       } else if (miles <= 100) {
-        distance = `${Math.round(miles)} mi (outside Houston metro)`;
+        distance = `${Math.round(miles)} mi (outside ${city.name} metro)`;
       } else {
-        distance = '📍 Houston, TX';
+        distance = `📍 ${cityLabel}`;
       }
     } else {
-      distance = '📍 Houston, TX';
+      distance = `📍 ${cityLabel}`;
     }
 
+    const isNational = NATIONAL_NAMES.has(r.name);
+
     return {
-      name: r.name,
+      name: r.name + (isNational ? ' (National)' : ''),
       detail: r.description + (r.phone ? ` Call ${r.phone}` : '') + (r.hours ? ` Hours: ${r.hours}` : ''),
       phone: r.phone || undefined,
       address: r.address || undefined,
@@ -470,10 +474,28 @@ function getResourcesForCategory(category: string, userLat?: number, userLng?: n
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, lat, lng } = body;
+    const { text, lat, lng, cityId: explicitCityId } = body;
 
     const userLat = typeof lat === 'number' && lat >= -90 && lat <= 90 ? lat : undefined;
     const userLng = typeof lng === 'number' && lng >= -180 && lng <= 180 ? lng : undefined;
+
+    // ─── Multi-city resolution: explicit > geolocation > default ───
+    let cityId: string = 'houston';
+    let cityMatch: CityMatch | null = null;
+    let cityLabel = 'Houston, TX';
+
+    if (explicitCityId && SUPPORTED_CITIES.some(c => c.id === explicitCityId)) {
+      // (1) User explicitly selected a city
+      cityId = explicitCityId;
+      const city = SUPPORTED_CITIES.find(c => c.id === cityId)!;
+      cityLabel = city.label;
+    } else if (userLat !== undefined && userLng !== undefined) {
+      // (2) Auto-detect from geolocation
+      cityMatch = findNearestCity(userLat, userLng);
+      cityId = cityMatch.city.id;
+      cityLabel = cityMatch.city.label;
+    }
+    // (3) Default: Houston (already set)
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       return NextResponse.json(
@@ -539,7 +561,7 @@ export async function POST(request: NextRequest) {
         ? "If someone is in immediate danger, call 911."
         : "If you are in immediate physical danger, call 911.";
 
-      const crisisResources = getResourcesForCategory("Crisis Support", userLat, userLng);
+      const crisisResources = getResourcesForCategory("Crisis Support", cityId, userLat, userLng);
 
       return NextResponse.json({
         isCrisis: true,
@@ -553,8 +575,10 @@ export async function POST(request: NextRequest) {
           warning: crisisWarning,
         }],
         hasLocation: userLat !== undefined,
-        outsideServiceArea: userLat !== undefined && isOutsideServiceArea(userLat, userLng!),
-        serviceArea: 'Houston, TX metro area',
+        outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
+        serviceArea: cityLabel + ' metro area',
+        cityId,
+        cityLabel,
       });
     }
 
@@ -613,7 +637,7 @@ export async function POST(request: NextRequest) {
     const categoriesWithResources = significantCategories.map(c => ({
       label: c.label,
       confidence: Math.round(c.score * 100),
-      resources: getResourcesForCategory(c.label, userLat, userLng),
+      resources: getResourcesForCategory(c.label, cityId, userLat, userLng),
       why: classificationSource === 'bart'
         ? 'Matched by BART-large-MNLI semantic analysis of your description.'
         : 'Matched by keyword analysis. For more accurate results, BART AI classification requires an API key.',
@@ -646,8 +670,10 @@ export async function POST(request: NextRequest) {
       model: modelLabel,
       classificationSource,
       hasLocation: userLat !== undefined,
-      outsideServiceArea: userLat !== undefined && isOutsideServiceArea(userLat, userLng!),
-      serviceArea: 'Houston, TX metro area',
+      outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
+      serviceArea: cityLabel + ' metro area',
+      cityId,
+      cityLabel,
       // ── DEBUG: Full transparency into classification pipeline ──
       debug: process.env.NODE_ENV === 'development' ? classificationDebug : undefined,
     });
@@ -666,12 +692,13 @@ export async function GET() {
   return NextResponse.json({
     status: "ok",
     service: "ClearPath AI Classification API",
-    version: "3.1.0",
+    version: "4.0.0",
     model: "facebook/bart-large-mnli",
     bartAvailable: hasApiKey,
     classificationMode: hasApiKey ? "BART-large-MNLI (live)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
     crisisDetection: "regex-based (deterministic)",
+    multiCity: true,
+    supportedCities: SUPPORTED_CITIES.map(c => ({ id: c.id, label: c.label })),
     labels: LABELS,
-    resourceCount: HOUSTON_RESOURCES.length,
   });
 }
