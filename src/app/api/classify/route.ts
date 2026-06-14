@@ -747,6 +747,7 @@ export async function POST(request: NextRequest) {
     const VAGUE_PATTERNS = [
       /^(hey|hi|hello|yo|sup|what'?s up|hola|coucou|bonjour|salut)[\s!.?]*$/i,
       /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|something|stuff|things|whatever|dunno|sad|hungry|cold|tired|lost|scared|alone|bad|upset|angry|confused|sick|broke|down|bored|sleepy|nice|cool|good|true|false|right|same|interesting|weird|strange|uh|um|ugh|meh|eh|huh|oh|wow|ah|mmm)[\s!.?]*$/i,
+      /^(when|where|what|how|why|who|which|whom)$/i,  // Single question words — no context
       /^.{0,3}$/,  // 3 chars or less — too short for meaningful classification
       /^(help|need help|i need help|please help|urgent|emergency|can you help|i need|i want|thanks|thx|pls|plz)[\s!.?]*$/i,
       /^(so what|what even|how come|how about|and then|is this real|how does this work|what is this|anyone there)[\s!.?]*$/i,
