@@ -32,7 +32,10 @@ const CRISIS_PATTERNS = [
   /don'?t\s+want\s+to\s+live/i,
   /don'?t\s+want\s+to\s+be\s+here/i,
   /overdose/i,
+  /took?\s+(a\s+)?(whole\s+)?(bottle|bunch|handful)\s+of\s+pills/i,
   /take\s+pills/i,
+  /swallow\s+pills/i,
+  /pills\s+to\s+(end|die|kill)/i,
   /jump\s+off/i,
   /hang\s+myself/i,
   /slit\s+my\s+wrists/i,
@@ -640,13 +643,23 @@ export async function POST(request: NextRequest) {
     // Crisis detection already ran above, so "help I'm suicidal" → crisis, not vague.
     const VAGUE_PATTERNS = [
       /^(hey|hi|hello|yo|sup|what'?s up|hola|coucou|bonjour|salut)[\s!.?]*$/i,
-      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk)[\s!.?]*$/i,
+      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|something|stuff|things|whatever|dunno)[\s!.?]*$/i,
       /^.{0,3}$/,  // 3 chars or less — too short for meaningful classification
       /^(help|need help|i need help)[\s!.?]*$/i,  // too generic — no category signal
     ];
     const isVague = VAGUE_PATTERNS.some(p => p.test(text.trim()));
 
-    if (isVague) {
+    // ── Layer 2b: Injection / adversarial input detection ──
+    // SQL injection, XSS, prompt injection — should never reach BART
+    const INJECTION_PATTERNS = [
+      /(<script|<\/script|javascript:|on\w+=)/i,  // XSS
+      /('|;)\s*(DROP|DELETE|INSERT|UPDATE|SELECT|UNION)\s/i,  // SQL injection
+      /IGNORE\s+(ALL\s+)?PREVIOUS\s+INSTRUCTIONS/i,  // Prompt injection
+      /^(.)\1{19,}$/,  // Repeated character 20+ times (spam)
+    ];
+    const isInjection = INJECTION_PATTERNS.some(p => p.test(text.trim()));
+
+    if (isVague || isInjection) {
       console.log("[classify] Vague input detected — skipping BART to avoid false confidence");
       return NextResponse.json({
         isCrisis: false,
