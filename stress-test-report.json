@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-06-14 22:03:02",
+  "total_bots": 1000,
+  "total_time": 51.7,
+  "avg_score": 79.7,
+  "grade": "C+",
+  "crisis_detection_rate": 47.0,
+  "vague_detection_rate": 66.7,
+  "error_rate": 0.0,
+  "category_stats": {
+    "normal": {
+      "count": 380,
+      "avg": 82.9,
+      "min": 70,
+      "max": 90,
+      "crisis_pct": 2.4,
+      "vague_pct": 0.0,
+      "bart_pct": 16.3,
+      "err_pct": 0.0
+    },
+    "crisis": {
+      "count": 100,
+      "avg": 56.6,
+      "min": 10,
+      "max": 100,
+      "crisis_pct": 47.0,
+      "vague_pct": 0.0,
+      "bart_pct": 1.0,
+      "err_pct": 0.0
+    },
+    "vague": {
+      "count": 150,
+      "avg": 84.9,
+      "min": 10,
+      "max": 90,
+      "crisis_pct": 0.0,
+      "vague_pct": 66.7,
+      "bart_pct": 6.0,
+      "err_pct": 0.0
+    },
+    "adversarial": {
+      "count": 100,
+      "avg": 83.5,
+      "min": 45,
+      "max": 85,
+      "crisis_pct": 0.0,
+      "vague_pct": 42.0,
+      "bart_pct": 5.0,
+      "err_pct": 0.0
+    },
+    "systematic": {
+      "count": 150,
+      "avg": 77.0,
+      "min": 70,
+      "max": 90,
+      "crisis_pct": 1.3,
+      "vague_pct": 0.0,
+      "bart_pct": 7.3,
+      "err_pct": 0.0
+    },
+    "edge-case": {
+      "count": 70,
+      "avg": 81.6,
+      "min": 70,
+      "max": 90,
+      "crisis_pct": 4.3,
+      "vague_pct": 0.0,
+      "bart_pct": 17.1,
+      "err_pct": 0.0
+    },
+    "spam": {
+      "count": 50,
+      "avg": 84.4,
+      "min": 70,
+      "max": 85,
+      "crisis_pct": 0.0,
+      "vague_pct": 16.0,
+      "bart_pct": 0.0,
+      "err_pct": 0.0
+    }
+  },
+  "source_breakdown": {
+    "vague-detection": 150,
+    "?": 87,
+    "bart": 100,
+    "keyword": 663
+  },
+  "critical_issues": 53,
+  "warnings": 23,
+  "score_distribution": {
+    "excellent": 228,
+    "good": 629,
+    "medium": 76,
+    "poor": 67
+  }
+}
