@@ -31,6 +31,7 @@ const CRISIS_PATTERNS = [
   /better\s+off\s+dead/i,
   /don'?t\s+want\s+to\s+live/i,
   /don'?t\s+want\s+to\s+be\s+here/i,
+  /don'?t\s+want\s+to\s+be\s+alive/i,
   /overdose/i,
   /took?\s+(a\s+)?(whole\s+)?(bottle|bunch|handful)\s+of\s+pills/i,
   /take\s+pills/i,
@@ -39,6 +40,10 @@ const CRISIS_PATTERNS = [
   /jump\s+off/i,
   /hang\s+myself/i,
   /slit\s+my\s+wrists/i,
+  /cutting\s+myself/i,
+  /i'?m\s+cutting/i,
+  /i\s+cut\s+myself/i,
+  /self[- ]?cut/i,
   /not\s+worth\s+living/i,
   /world\s+without\s+me/i,
   /give\s+up\s+on\s+life/i,
@@ -57,6 +62,9 @@ const CRISIS_PATTERNS = [
   /i\s+am\s+going\s+to\s+die\b(?!\s+(from|of|for))/i,
   /help\s+me\s+i'?m\s+dying/i,
   /i\s+can'?t\s+breathe/i,
+  /heart\s+attack/i,
+  /chest\s+pain/i,
+  /i'?m\s+having\s+a\s+heart/i,
 
   // ─── Domestic violence / abuse ───
   /domestic\s+violen/i,
@@ -81,9 +89,19 @@ const CRISIS_PATTERNS = [
   // ─── Sexual assault / trafficking ───
   /sexual\s+assault/i,
   /\braped?\b/i,
+  /traffick/i,
   /human\s+trafficking/i,
   /forced\s+to\s+work/i,
-  /held\s+against\s+my\s+will/i,
+  /held\s+against\s+(my|their)\s+will/i,
+  /someone\s+is\s+traffick/i,
+
+  // ─── Weapon threats ───
+  /have\s+a\s+gun/i,
+  /i\s+have\s+a\s+gun/i,
+  /gun\s+and\s+(i'?ll|will)/i,
+  /going\s+to\s+shoot/i,
+  /i'?ll\s+shoot/i,
+  /i\s+have\s+a\s+knife/i,
 
   // ─── Homicidal ideation / violence towards others ───
   /\b(kill|murder|hurt|harm|shoot|stab)\s+(someone|my|a|him|her|them|people|friend|family|partner|spouse|boss|child|kids?)\b/i,
@@ -99,7 +117,7 @@ const CANDIDATE_LABELS = [
   'feeling alone, lonely, isolated, no one to talk to, depression, anxiety, PTSD, counseling, emotional support',
   'job search, career training, unemployed, need work, job placement, workforce development',
   'legal aid, immigration help, court assistance, lawyer, legal rights, asylum, citizenship',
-  'medical care, health clinic, doctor, prescription help, health insurance, dying of illness',
+  'medical care, health clinic, doctor visit, prescription medication, health insurance, Medicaid, dental care, vision care, prenatal care, immunizations',
   'suicide, self-harm, want to die, end my life, hurting myself, crisis intervention',
   'senior services, elderly care, aging, meals for seniors, caregiver support, adults 60+',
   'veteran services, VA benefits, military veteran, PTSD veteran, veteran housing, GI bill, veteran healthcare',
@@ -112,7 +130,7 @@ const LABEL_TO_CATEGORY: Record<string, string> = {
   'feeling alone, lonely, isolated, no one to talk to, depression, anxiety, PTSD, counseling, emotional support': 'Mental Health',
   'job search, career training, unemployed, need work, job placement, workforce development': 'Employment Services',
   'legal aid, immigration help, court assistance, lawyer, legal rights, asylum, citizenship': 'Legal Aid',
-  'medical care, health clinic, doctor, prescription help, health insurance, dying of illness': 'Healthcare',
+  'medical care, health clinic, doctor visit, prescription medication, health insurance, Medicaid, dental care, vision care, prenatal care, immunizations': 'Healthcare',
   'suicide, self-harm, want to die, end my life, hurting myself, crisis intervention': 'Crisis Support',
   'senior services, elderly care, aging, meals for seniors, caregiver support, adults 60+': 'Senior Services',
   'veteran services, VA benefits, military veteran, PTSD veteran, veteran housing, GI bill, veteran healthcare': 'Veteran Services',
@@ -643,9 +661,9 @@ export async function POST(request: NextRequest) {
     // Crisis detection already ran above, so "help I'm suicidal" → crisis, not vague.
     const VAGUE_PATTERNS = [
       /^(hey|hi|hello|yo|sup|what'?s up|hola|coucou|bonjour|salut)[\s!.?]*$/i,
-      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|something|stuff|things|whatever|dunno)[\s!.?]*$/i,
+      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|something|stuff|things|whatever|dunno|sad|hungry|cold|tired|lost|scared|alone|bad|upset|angry|confused|sick|broke|down)[\s!.?]*$/i,
       /^.{0,3}$/,  // 3 chars or less — too short for meaningful classification
-      /^(help|need help|i need help)[\s!.?]*$/i,  // too generic — no category signal
+      /^(help|need help|i need help|please help|urgent|emergency)[\s!.?]*$/i,  // too generic — no category signal
     ];
     const isVague = VAGUE_PATTERNS.some(p => p.test(text.trim()));
 
