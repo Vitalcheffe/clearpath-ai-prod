@@ -35,8 +35,14 @@ const CRISIS_PATTERNS = [
   /overdose/i,
   /took?\s+(a\s+)?(whole\s+)?(bottle|bunch|handful)\s+of\s+pills/i,
   /take\s+pills/i,
-  /swallow\s+pills/i,
+  /take\s+all\s+my\s+(pills|medication|medicine)/i,
+  /going\s+to\s+take\s+all\s+my/i,
+  /swallow(ed)?\s+(a\s+)?(bunch|handful|whole)\s+of\s+pills/i,
+  /swallow(ed)?\s+pills/i,
   /pills\s+to\s+(end|die|kill)/i,
+  /medication\s+at\s+once/i,
+  /all\s+my\s+(pills|medication|medicine)\s+at\s+once/i,
+  /all\s+my\s+pills\s+if/i,
   /jump\s+off/i,
   /hang\s+myself/i,
   /slit\s+my\s+wrists/i,
@@ -87,7 +93,8 @@ const CRISIS_PATTERNS = [
   /threatening\s+to\s+kill/i,
 
   // ─── Sexual assault / trafficking ───
-  /sexual\s+assault/i,
+  /sexual(ly)?\s+assault/i,
+  /just\s+sexual(ly)?\s+assault/i,
   /\braped?\b/i,
   /traffick/i,
   /human\s+trafficking/i,
@@ -111,7 +118,11 @@ const CRISIS_PATTERNS = [
   /child\s+abuse/i,
   /elder\s+abuse/i,
   /abuse(s|d)?\s+me/i,
+  /abusive\s+relationship/i,
   /hurting\s+me/i,
+  /parent\s+hurts?\s+me/i,
+  /hurts?\s+me\s+when/i,
+  /child.*hurts?/i,
 
   // ─── More self-harm methods ───
   /step\s+in\s+front\s+of/i,
