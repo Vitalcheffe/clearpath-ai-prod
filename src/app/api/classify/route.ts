@@ -263,9 +263,13 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
     },
   };
 
-  // ── ATTEMPT 1: Raw fetch ──
+  // ── ATTEMPT 1: Raw fetch with timeout ──
   const fetchStart = Date.now();
   try {
+    // 15s timeout — HuggingFace free tier can be slow on cold start
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const response = await fetch(HF_API_URL, {
       method: "POST",
       headers: {
@@ -273,7 +277,9 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const elapsed = Date.now() - fetchStart;
     debug.fetchStatus = response.status;
@@ -305,6 +311,47 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
       debug.fallbackUsed = true;
       debug.fallbackReason = `Unexpected HF response format: keys=${Object.keys(result).join(',')}`;
       console.warn("[classify] Unexpected HF response format:", debug.fallbackReason);
+    } else if (response.status === 503) {
+      // Model is loading — retry once after waiting
+      const errBody = await response.text();
+      debug.hfResponseBody = errBody.substring(0, 500);
+      console.log(`[classify] HF model loading (503), waiting 20s and retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 20000));
+      
+      try {
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 15000);
+        const retryResponse = await fetch(HF_API_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${HF_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller2.signal,
+        });
+        clearTimeout(timeoutId2);
+
+        if (retryResponse.ok) {
+          const retryResult = await retryResponse.json();
+          if (retryResult.labels && retryResult.scores) {
+            console.log(`[classify] Retry succeeded after 503!`);
+            return {
+              results: retryResult.labels.map((label: string, i: number) => ({
+                label: LABEL_TO_CATEGORY[label] || label,
+                score: retryResult.scores[i],
+                source: 'bart' as const,
+              })),
+              debug,
+            };
+          }
+        }
+        debug.fallbackUsed = true;
+        debug.fallbackReason = `HF API 503 retry failed: ${retryResponse.status}`;
+      } catch (retryErr) {
+        debug.fallbackUsed = true;
+        debug.fallbackReason = `HF API 503 retry error: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`;
+      }
     } else {
       const errBody = await response.text();
       debug.hfResponseBody = errBody.substring(0, 500);
@@ -589,27 +636,25 @@ export async function POST(request: NextRequest) {
     // Crisis detection already ran above, so "help I'm suicidal" → crisis, not vague.
     const VAGUE_PATTERNS = [
       /^(hey|hi|hello|yo|sup|what'?s up|hola|coucou|bonjour|salut)[\s!.?]*$/i,
-      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|i don'?t know)[\s!.?]*$/i,
-      /^.{0,3}$/,  // 3 chars or less (after trim) — too short for meaningful classification
+      /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk)[\s!.?]*$/i,
+      /^.{0,3}$/,  // 3 chars or less — too short for meaningful classification
       /^(help|need help|i need help)[\s!.?]*$/i,  // too generic — no category signal
     ];
     const isVague = VAGUE_PATTERNS.some(p => p.test(text.trim()));
 
     if (isVague) {
+      console.log("[classify] Vague input detected — skipping BART to avoid false confidence");
       return NextResponse.json({
         isCrisis: false,
         isVague: true,
         categories: [],
         needsClarification: true,
-        clarificationMessage: "Could you tell us more about your situation? For example: 'I lost my job and need help with rent' or 'I'm looking for food assistance for my family.'",
-        clarificationQuestions: [
-          { question: 'What kind of help are you looking for?', options: ['Housing / shelter', 'Food assistance', 'Mental health support', 'Employment / job help', 'Legal aid', 'Healthcare', 'Veteran services', 'Senior services'], id: 'vague_category' }
-        ],
-        model: 'Vague input detected — skipped BART to avoid false confidence',
-        classificationSource: 'vague-detection',
+        clarificationMessage: "Could you tell us more about your situation? For example: I lost my job and need help with rent, or I need food assistance for my family.",
+        model: "Vague input detected - skipped BART to avoid false confidence",
+        classificationSource: "vague-detection",
         hasLocation: userLat !== undefined,
         outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
-        serviceArea: cityLabel + ' metro area',
+        serviceArea: cityLabel + " metro area",
         cityId,
         cityLabel,
       });
@@ -620,7 +665,7 @@ export async function POST(request: NextRequest) {
 
     const classificationSource = classifications.length > 0 ? classifications[0].source : 'keyword';
 
-    // Layer 3: Confidence-gated response
+    // Layer 4: Confidence-gated response
     const MULTI_NEED_THRESHOLD = 0.10;
     const MAX_CATEGORIES = 5;
     let significantCategories = classifications
