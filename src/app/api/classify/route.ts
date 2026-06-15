@@ -362,7 +362,7 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
     fallbackReason: null,
   };
 
-  // ── HONEST GATE: No API key = no BART. Never fake it. ──
+  // ── HONEST GATE: No API key = fallback to keyword classification. ──
   if (!HF_API_KEY || HF_API_KEY === "hf_xxxxx") {
     console.warn("[classify] No HUGGINGFACE_API_KEY configured — using keyword matching");
     debug.fallbackUsed = true;
