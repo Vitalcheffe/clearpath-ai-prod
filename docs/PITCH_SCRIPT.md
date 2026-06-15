@@ -117,7 +117,7 @@ honesty is the safest answer.
 **[SCREEN: Small text at bottom]**
 
 ```
-Built by Amine Harch El Korane & Harshit Singh
+Built by Amine Harch El Korane
 100% free and open source · React · Next.js · HuggingFace
 ```
 
@@ -137,7 +137,7 @@ Built by Amine Harch El Korane & Harshit Singh
 - **Crisis overlay:** This section should feel different. Slower. More serious. The silence after "Some things are too important for AI to decide" is intentional. Let it breathe.
 
 ### What NOT to do
-- Don't start with "Hi, we're Amine and Harshit." Judges don't care about you yet. They care about the problem.
+- Don't start with introductions. Judges don't care about you yet. They care about the problem.
 - Don't explain what AI is. Judges are AI experts. They want to see YOUR AI, not a tutorial.
 - Don't use buzzwords without substance. "We leverage machine learning" = nothing. "We classify needs across multiple categories with calibrated confidence scores" = something.
 - Don't show bugs. If something glitches during recording, re-record that section.

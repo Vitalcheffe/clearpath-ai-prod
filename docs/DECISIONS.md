@@ -56,7 +56,7 @@
 
 **Alternatives Considered:**
 - Python AI pipeline (Flask/FastAPI) + Node.js backend: More traditional separation, but adds complexity (two codebases, two deployments, inter-service latency). The HuggingFace Inference API makes the Python runtime unnecessary.
-- All Python (FastAPI for everything): Simpler for AI work, but Harshit is less productive in Python. We'd lose Next.js's excellent developer experience and Vercel's zero-config deployment.
+- All Python (FastAPI for everything): Simpler for AI work, but the team has less experience in Python. We'd lose Next.js's excellent developer experience and Vercel's zero-config deployment.
 - All Node.js with TensorFlow.js: Possible but TF.js has fewer pre-trained zero-shot models than HuggingFace's ecosystem. Would limit our AI capability.
 
 ---
@@ -123,7 +123,7 @@
 
 **Rationale:**
 - **Full-stack in one framework:** Next.js App Router gives us both frontend pages (`src/app/`) and API routes (`src/app/api/`) in a single application. No separate backend needed.
-- **Harshit's strongest framework.** Maximum development velocity.
+- **The team's strongest framework.** Maximum development velocity.
 - **TypeScript throughout** catches bugs at compile time, which is critical for a 7-day build sprint where we can't afford runtime errors.
 - **Tailwind CSS + shadcn/ui** provides a professional, accessible component library with zero custom CSS overhead.
 - **Vercel deployment is trivial** for Next.js apps. Zero-config CI/CD.
@@ -136,7 +136,7 @@
 
 **Alternatives Considered:**
 - Separate React frontend + Express backend: More traditional split, but adds complexity. Next.js API routes handle our needs perfectly.
-- Vue.js: Lighter bundle size, but Harshit has less experience. Not worth the learning curve for a 7-day sprint.
+- Vue.js: Lighter bundle size, but the team has less experience. Not worth the learning curve for a 7-day sprint.
 - Plain HTML/JS: Smallest possible bundle, but harder to manage complex state (classification results, clarification flow, crisis overlay). Not practical.
 
 ---

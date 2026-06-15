@@ -2,7 +2,7 @@
 
 **Project:** ClearPath AI — Community Resource Navigator  
 **Hackathon:** USAII Global AI Hackathon 2026 — Community Track  
-**Team:** Amine Harch El Korane (Morocco) · Harshit Singh (India)  
+**Team:** Amine Harch El Korane (Morocco)  
 **Effective:** June 7, 2026  
 
 ---
@@ -43,14 +43,14 @@ These are non-negotiable. Violation = immediate revert + warning.
 
 Each team member OWNS their modules. The other person can review and suggest, but does NOT rewrite without permission.
 
-### Amine — AI & Project Lead
+### Amine — Founder & Lead Developer
 - `src/app/api/classify/` — Crisis detection (regex-based keyword engine) + BART-large-MNLI zero-shot classification with confidence calibration
 - `src/data/` — Resource database (Houston community resource data and category mappings)
 - `RESPONSIBLE_AI.md` — Ethical framework documentation
 - Qualifier responses (June 7–10)
 - Pitch video script
 
-### Harshit — Full-Stack & DevOps
+
 - `src/app/` — Next.js App Router pages and UI components (all frontend pages)
 - `src/components/` — React + TypeScript UI components (all components)
 - `prisma/` — SQLite schema and seed data
@@ -91,7 +91,7 @@ These are NOT optional. They are CORE to our project and our competitive advanta
 | 5.2 | **Maximum response time: 4 hours** during build week (June 14–21). If you're unavailable for longer, notify in advance. |
 | 5.3 | **No ghosting.** If you need to drop out, say it directly. Don't disappear. |
 | 5.4 | **Decisions are documented.** Any architecture or design decision goes in `DECISIONS.md` with date, context, and who decided. |
-| 5.5 | **Disagreements are resolved by the person who OWNS the module.** If it's the AI/classification module, Amine decides. If it's the frontend, Harshit decides. If it's shared, we discuss and both agree. |
+| 5.5 | **Disagreements are resolved by the person who OWNS the module.** The project lead makes final decisions with input from all contributors. |
 | 5.6 | **Build week schedule:** |
 | | June 14: Architecture finalization + repo setup + API contracts |
 | | June 15: Crisis detection + frontend skeleton |
@@ -138,7 +138,6 @@ These are strategic anti-patterns. Not disqualifying, but they WILL lose us poin
 
 By working on ClearPath AI, you agree to this charter. Violations of §1 or §4 are grounds for immediate team discussion and potential removal from the project.
 
-**Amine Harch El Korane** — Project Lead & AI Pipeline  
-**Harshit Singh** — Full-Stack Engineer & DevOps  
+**Amine Harch El Korane** — Founder & Lead Developer  
 
 *Last updated: June 2026*

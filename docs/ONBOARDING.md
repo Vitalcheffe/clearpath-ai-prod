@@ -9,8 +9,7 @@
 ClearPath AI is a community resource navigator for the USAII Global AI Hackathon 2026. Our thesis: **a confident wrong answer is more dangerous than no answer at all.** We build AI that shows uncertainty instead of hiding it.
 
 **Team:**
-- **Amine Harch El Korane** (Morocco) — Project Lead, AI Pipeline, Qualifier, Pitch
-- **Harshit Singh** (India) — Full-Stack Engineer, DevOps, Frontend, Backend
+- **Amine Harch El Korane** (Morocco) — Founder & Lead Developer
 
 **Hackathon Timeline:**
 - June 7–10: Qualifier (written assessment, 30 min)
@@ -247,7 +246,6 @@ curl http://localhost:3000/api/community-resources
 ## CONTACT
 
 - **Amine:** [Discord/DM — to be shared]
-- **Harshit:** [Discord/DM — to be shared]
 - **Team chat:** [Discord channel — to be created]
 
 ---

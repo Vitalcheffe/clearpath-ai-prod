@@ -137,7 +137,7 @@ const teamMembers = [
     gradient: 'from-blue-500 to-blue-600',
   },
   {
-    name: 'Harshit P.',
+    name: 'Amine H.',
     role: 'Full-Stack Engineer',
     expertise: 'Next.js, TypeScript, ML Integration',
     bio: 'Engineered the ClearPath AI demo from the ground up. Specializes in building production-ready systems that handle real-world edge cases with grace.',

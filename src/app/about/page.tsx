@@ -651,7 +651,7 @@ export default function AboutPage() {
                   {
                     month: 'April 2026',
                     title: 'First Prototype',
-                    desc: 'With the architecture defined, Harshit built the first working prototype in Next.js. The initial version could classify resource needs into categories, display confidence scores, and route crisis situations to the 988 hotline. It was rough — the UI was basic, the classification was slow, and the resource database was tiny. But when we tested it against real scenarios, the classification approach immediately outperformed generative alternatives. No hallucinated resources. No false confidence. Just honest, calibrated results.',
+                    desc: 'With the architecture defined, Amine built the first working prototype in Next.js. The initial version could classify resource needs into categories, display confidence scores, and route crisis situations to the 988 hotline. It was rough — the UI was basic, the classification was slow, and the resource database was tiny. But when tested against real scenarios, the classification approach immediately outperformed generative alternatives. No hallucinated resources. No false confidence. Just honest, calibrated results.',
                     icon: Code2,
                     color: '#3b82f6',
                     dotColor: 'bg-blue-400',
@@ -1089,11 +1089,11 @@ export default function AboutPage() {
                   socials: { github: '#', linkedin: '#' },
                 },
                 {
-                  name: 'Harshit Singh',
+                  name: 'Amine Harch El Korane',
                   initials: 'HS',
                   role: 'Full-Stack Developer & Technical Architecture',
                   location: 'India',
-                  bio: 'Harshit is a full-stack developer from India who specializes in building scalable, user-centered applications. He architected ClearPath AI\'s 6-layer transparency system from the ground up, ensuring that every technical decision — from the choice of BART-large-MNLI for classification to the zero-storage privacy architecture — reinforces the project\'s core values of honesty and safety. He wrote the entire Next.js frontend and API infrastructure in under three months.',
+                  bio: 'Amine is the founder and lead developer of ClearPath AI. He architected the 6-layer transparency system from the ground up, ensuring that every technical decision — from the choice of BART-large-MNLI for classification to the zero-storage privacy architecture — reinforces the project's core values of honesty and safety. He built the entire Next.js frontend and API infrastructure, driven by firsthand experience with broken social service systems.',
                   motivation: 'I joined ClearPath AI because I believe technical architecture is an ethical statement. Every system design choice — storing data or not, showing confidence or hiding it, escalating to humans or not — is a choice about whose safety matters. I wanted to build a system where those choices are explicit and auditable.',
                   skills: ['Next.js', 'TypeScript', 'React', 'API Architecture', 'Zero-Shot Classification', 'Framer Motion'],
                   gradient: 'from-blue-500 to-indigo-600',
