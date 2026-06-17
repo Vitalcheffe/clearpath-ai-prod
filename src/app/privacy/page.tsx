@@ -547,7 +547,7 @@ export default function PrivacyPage() {
                   {[
                     'We do not knowingly collect personal information from children under 13',
                     'Account creation is optional — guests need no names, emails, or birthdays; accounts require minimal information',
-                    'There is no authentication system. No personal data is collected from anyone — adult or minor.'
+                    'There is no authentication system. No personal data is collected from anyone — adult or minor.',
                     'Crisis detection works the same way for all users, including children, ensuring immediate access to help',
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">

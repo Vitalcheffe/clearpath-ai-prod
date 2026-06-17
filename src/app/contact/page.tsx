@@ -384,7 +384,7 @@ const supportCategories = [
   {
     icon: Lock,
     title: 'Privacy & Security',
-    description: 'Questions about data handling, encryption, or our privacy-first architecture. We do not claim privacy-first architecture (no PII stored) — we do not collect health information.'
+    description: 'Questions about data handling, encryption, or our privacy-first architecture. We do not claim HIPAA compliance — we do not collect health information.',
     color: '#8b5cf6',
     examples: ['Data retention policies', 'Encryption standards', 'Third-party data sharing'],
   },
@@ -471,7 +471,7 @@ const partnerTiers = [
     description: 'For mid-size organizations that need deeper integration, dedicated support, and custom resource classification for their communities.',
     features: [
       'Everything in Community, plus:',
-      '(No API tier — this is a hackathon build)'
+      '(No API tier — this is a hackathon build)',
       'Custom resource classification',
       'Dedicated partnership manager',
       'Monthly sync calls',

@@ -1021,10 +1021,10 @@ export default function LandingPage() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {[
-            { value: 8, suffix: '', label: 'BART Categories', icon: Database, color: '#3b82f6', bgColor: 'rgba(59,130,246,0.06)' },
-            { value: 175, suffix: '', label: 'Crisis Regex Patterns', icon: ShieldCheck, color: '#10b981', bgColor: 'rgba(16,185,129,0.06)' },
-            { value: 6, suffix: '', label: 'Cities Hand-Verified', icon: MapPin, color: '#f59e0b', bgColor: 'rgba(245,158,11,0.06)' },
-            { value: 70, suffix: '%', label: 'Confidence Threshold', icon: Users, color: '#6366f1', bgColor: 'rgba(99,102,241,0.06)' },
+            { value: 8, prefix: '', suffix: '', label: 'BART Categories', icon: Database, color: '#3b82f6', bgColor: 'rgba(59,130,246,0.06)' },
+            { value: 175, prefix: '', suffix: '', label: 'Crisis Regex Patterns', icon: ShieldCheck, color: '#10b981', bgColor: 'rgba(16,185,129,0.06)' },
+            { value: 6, prefix: '', suffix: '', label: 'Cities Hand-Verified', icon: MapPin, color: '#f59e0b', bgColor: 'rgba(245,158,11,0.06)' },
+            { value: 70, prefix: '', suffix: '%', label: 'Confidence Threshold', icon: Users, color: '#6366f1', bgColor: 'rgba(99,102,241,0.06)' },
           ].map((stat, i) => {
             const Icon = stat.icon
             return (

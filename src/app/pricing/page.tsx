@@ -211,7 +211,7 @@ const faqs = [
       'We love hearing from our users! You can submit feature requests through the feedback button in the app, by emailing team@clearpath-ai.org, or through our community forum. Pro and Enterprise users get priority consideration for feature requests. We review all suggestions monthly and publish a public roadmap of planned features.',
   },
   {
-    question: 'Is ClearPath AI HIPAA compliant?'
+    question: 'Is ClearPath AI HIPAA compliant?',
     answer:
       'ClearPath AI does not collect Protected Health Information (PHI). There is no user account system, no persistent storage of queries, no health data. We do not claim privacy-first architecture (no PII stored) — it does not apply to a tool that collects no health information. There is no Enterprise tier and no sales team — this is a hackathon build by two high school students.'
   },
