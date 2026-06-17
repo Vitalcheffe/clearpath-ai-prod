@@ -80,8 +80,8 @@ const legalLinks = [
 
 const socialLinks = [
   { label: 'GitHub', href: 'https://github.com/Vitalcheffe/clearpath-ai', icon: Github, handle: '@Vitalcheffe' },
-  { label: 'Twitter / X', href: '#', icon: Twitter, handle: 'Coming soon' },
-  { label: 'LinkedIn', href: '#', icon: Linkedin, handle: 'Coming soon' },
+  { label: 'Twitter / X', href: '#', icon: Twitter, handle: 'Not on Twitter' },
+  { label: 'LinkedIn', href: '#', icon: Linkedin, handle: 'No company page' },
 ]
 
 const trustBadges = [

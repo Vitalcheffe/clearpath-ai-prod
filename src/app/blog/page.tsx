@@ -1867,10 +1867,11 @@ export default function BlogPage() {
             >
               <div className="glass-card inline-flex items-center gap-3 px-6 py-3 rounded-2xl shadow-premium">
                 <Mail className="w-4 h-4 text-gray-400" />
-                <span className="text-[13px] text-gray-500">Media inquiries:</span>
-                <a href="mailto:press@clearpathai.org" className="text-[13px] font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-                  press@clearpathai.org
+                <span className="text-[13px] text-gray-500">Contact:</span>
+                <a href="mailto:amineharchelkorane5@gmail.com" className="text-[13px] font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                  amineharchelkorane5@gmail.com
                 </a>
+                <span className="text-[12px] text-gray-400">(no press inquiries — hackathon build)</span>
               </div>
             </motion.div>
           </div>
