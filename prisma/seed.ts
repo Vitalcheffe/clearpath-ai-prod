@@ -7,12 +7,12 @@ async function main() {
 
   // ─── 1. Demo User (for conversation/saved resource features) ──────
   const demoUser = await prisma.user.upsert({
-    where: { email: "alex@example.com" },
+    where: { email: "amine@example.com" },
     update: {},
     create: {
-      name: "Alex Korane",
-      email: "alex@example.com",
-      username: "alexkorane",
+      name: "Amine Harch El Korane",
+      email: "amine@example.com",
+      username: "amine",
       plan: "free",
       language: "en",
       location: "Houston, TX",

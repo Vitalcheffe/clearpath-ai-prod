@@ -363,7 +363,7 @@ const commitments = [
 // ─── ETHICS COMMITTEE DATA ───────────────────────────────
 const committeeMembers = [
   {
-    name: 'Dr. Sarah Chen (Illustrative)',
+    name: 'Amine Harch El Korane (Illustrative)',
     role: 'Chair, AI Ethics Committee',
     initials: 'SC',
     gradient: 'from-blue-500 to-violet-500',

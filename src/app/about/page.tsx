@@ -1168,7 +1168,7 @@ export default function AboutPage() {
               className="text-center mb-8"
             >
               <h3 className="text-xl font-bold text-gray-900 tracking-tight">Advisors & Mentors</h3>
-              <p className="text-[14px] text-gray-500 mt-2">Guidance from experts who share our vision</p>
+              <p className="text-[14px] text-gray-500 mt-2">Honest status: we have no advisors or mentors</p>
             </motion.div>
 
             <motion.div
@@ -1176,52 +1176,25 @@ export default function AboutPage() {
               whileInView="visible"
               viewport={{ once: true }}
               variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
+              className="grid sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-10"
             >
-              {[
-                {
-                  name: 'Dr. Fatima El-Amrani',
-                  initials: 'FE',
-                  role: 'AI Ethics Advisor',
-                  org: 'Mohammed VI Polytechnic University',
-                  bio: 'Expert in responsible AI deployment in underserved communities. Advises on honest confidence methodology and NIST AI RMF alignment.',
-                  gradient: 'from-violet-500 to-purple-600',
-                },
-                {
-                  name: 'Raj Patel',
-                  initials: 'RP',
-                  role: 'Technical Mentor',
-                  org: 'Senior Engineer, Microsoft India',
-                  bio: 'Full-stack architect with experience building scalable AI products. Mentors on system architecture, API design, and zero-storage privacy patterns.',
-                  gradient: 'from-amber-500 to-orange-600',
-                },
-                {
-                  name: 'Maria Gonzalez',
-                  initials: 'MG',
-                  role: 'Community Impact Advisor',
-                  org: 'No organization — designed scenario, not a real partner',
-                  bio: 'Former 211 navigator with 15 years of experience connecting people with community resources. Ensures ClearPath AI serves real community needs, not just technical benchmarks.',
-                  gradient: 'from-rose-500 to-pink-600',
-                },
-              ].map((advisor) => (
-                <motion.div
-                  key={advisor.name}
-                  variants={fadeInUp}
-                  className="glass-card rounded-2xl p-5 shadow-premium hover:shadow-premium-lg transition-shadow duration-300"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${advisor.gradient} flex items-center justify-center shadow-md shrink-0`}>
-                      <span className="text-[13px] font-bold text-white">{advisor.initials}</span>
-                    </div>
-                    <div>
-                      <h4 className="text-[14px] font-bold text-gray-900 tracking-tight">{advisor.name}</h4>
-                      <div className="text-[11px] text-gray-500 font-medium">{advisor.role}</div>
-                      <div className="text-[11px] text-gray-400">{advisor.org}</div>
-                    </div>
+              <motion.div
+                variants={fadeInUp}
+                className="glass-card rounded-2xl p-6 shadow-premium border border-amber-100"
+              >
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shrink-0">
+                    <span className="text-[13px] font-bold text-white">!</span>
                   </div>
-                  <p className="text-[13px] text-gray-500 leading-relaxed">{advisor.bio}</p>
-                </motion.div>
-              ))}
+                  <div>
+                    <h4 className="text-[14px] font-bold text-gray-900 tracking-tight">No advisors, no mentors, no partners</h4>
+                    <p className="text-[11px] text-gray-500 font-medium">Hackathon build — June 2026</p>
+                  </div>
+                </div>
+                <p className="text-[13px] text-gray-600 leading-relaxed">
+                  We are two high school students from Morocco (Amine Harch El Korane and Ghali El Alj). We do not have an advisory board, mentors, or formal partnerships. Every design decision — the 6-layer pipeline, the 175-pattern crisis regex, the 70% confidence threshold, the 3-tier fallback — was made by us based on publicly available documentation (HuggingFace model card, BART paper, 211.org public service description) and our own judgment. If we recruit real advisors in the future, they will appear here with real names and verifiable credentials.
+                </p>
+              </motion.div>
             </motion.div>
 
             <motion.div

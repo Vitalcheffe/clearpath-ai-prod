@@ -454,9 +454,8 @@ export default function TeamPage() {
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-gray-500 mt-6 max-w-3xl mx-auto leading-relaxed"
               >
-                We&apos;re a team of engineers, researchers, designers, and community advocates
-                united by a single belief: <span className="font-semibold text-gray-700">when AI serves people in crisis, honesty isn&apos;t optional — it&apos;s the architecture.</span>{' '}
-                Every line of code, every design decision, and every partnership is built around honest confidence.
+                We&apos;re two high school students from Morocco who believe that when AI serves people in crisis, honesty isn&apos;t optional — it&apos;s the architecture.{' '}
+                Every line of code and every design decision is built around honest confidence.
               </motion.p>
 
               {/* Team Stats */}
@@ -643,7 +642,7 @@ export default function TeamPage() {
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Growing the Team</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
-                The engineers, researchers, designers, and advocates who turned a vision of honest AI into a working, testable system.
+                Two high school students from Morocco who turned a vision of honest AI into a working, testable system.
               </p>
             </motion.div>
 
@@ -1629,7 +1628,7 @@ export default function TeamPage() {
                   color: '#10b981',
                 },
                 {
-                  name: 'Feeding America',
+                  name: 'Public 211.org directory (no formal partnership)',
                   desc: 'Advising on food assistance resource taxonomy, SNAP enrollment patterns, and the specific language people use when searching for food-related community resources.',
                   type: 'Content Advisor',
                   icon: HeartHandshake,
@@ -1699,44 +1698,44 @@ export default function TeamPage() {
               {[
                 {
                   quote: 'I used to spend 20 minutes searching for the right resource code. ClearPath AI does it in 2 seconds — and shows me alternatives I would have never thought of. The confidence score is honestly my favorite feature. When it says 92% confident, I trust it. When it says 45%, I know to dig deeper.',
-                  name: 'Rebecca Torres',
+                  name: 'Designed scenario — not a real testimonial',
                   title: 'Fake persona — removed (we have no testimonials from real 211 navigators)',
-                  initials: 'RT',
+                  initials: 'DS',
                   color: '#3b82f6',
                 },
                 {
                   quote: 'The crisis detection saved a life in our pilot program. A user typed something that the system recognized as a crisis signal, and before any AI classification happened, they were connected to 988. That split-second decision — bypassing the AI entirely — is exactly how it should work.',
-                  name: 'Dr. Keisha Williams',
-                  title: 'Crisis Intervention Specialist, NAMI',
-                  initials: 'KW',
+                  name: 'Designed scenario — not a real testimonial',
+                  title: 'Designed scenario — no real NAMI endorsement',
+                  initials: 'DS',
                   color: '#ef4444',
                 },
                 {
                   quote: 'I was skeptical about AI in social services. Too many tools hallucinate phone numbers or mix up programs. ClearPath AI is different — it classifies against a verified database, shows its confidence, and always offers to connect to a human. It\'s the first AI tool I\'ve actually recommended to my colleagues.',
-                  name: 'Carlos Mendoza',
-                  title: 'Community Outreach Director, Feeding America — Southwest',
-                  initials: 'CM',
+                  name: 'Designed scenario — not a real testimonial',
+                  title: 'Designed scenario — no real Feeding America endorsement',
+                  initials: 'DS',
                   color: '#10b981',
                 },
                 {
                   quote: 'The "What Else" section is brilliant. Sometimes a family doesn\'t just need housing — they need housing AND food assistance AND childcare. ClearPath AI shows me all the possible categories, not just the top one. That feature alone saves me three calls per session.',
-                  name: 'Jennifer Nguyen',
-                  title: '211 Navigator, United Way — Bay Area',
-                  initials: 'JN',
+                  name: 'Designed scenario — not a real testimonial',
+                  title: 'Designed scenario — no real United Way Bay Area endorsement',
+                  initials: 'DS',
                   color: '#8b5cf6',
                 },
                 {
-                  quote: 'What impressed me most is the privacy-first approach. I work with undocumented families who are terrified of any system that might store their information. Being able to tell them that guest sessions leave no trace — that when they close the tab, their data disappears — while accounts offer encrypted storage for those who want it — that trust is everything.',
-                  name: 'Maria Gutierrez',
-                  title: 'Legal Aid Navigator, Catholic Charities — Chicago',
-                  initials: 'MG',
+                  quote: 'What impressed me most is the privacy-first approach. I work with undocumented families who are terrified of any system that might store their information. Being able to tell them that guest sessions leave no trace — that when they close the tab, their data disappears — that trust is everything.',
+                  name: 'Designed scenario — not a real testimonial',
+                  title: 'Designed scenario — no real Catholic Charities Chicago endorsement',
+                  initials: 'DS',
                   color: '#f59e0b',
                 },
                 {
                   quote: 'I\'ve been navigating for 15 years. ClearPath AI handles the straightforward queries so I can focus on the complex cases that really need a human touch. It doesn\'t replace me — it gives me superpowers. And the "Talk to a Navigator" button means my help is always one click away.',
-                  name: 'Robert Jackson',
-                  title: 'Veteran Navigator, VA Support Services — Houston',
-                  initials: 'RJ',
+                  name: 'Designed scenario — not a real testimonial',
+                  title: 'Designed scenario — no real VA Houston endorsement',
+                  initials: 'DS',
                   color: '#ec4899',
                 },
               ].map((testimonial) => (

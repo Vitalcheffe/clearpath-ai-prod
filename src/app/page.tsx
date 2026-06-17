@@ -499,8 +499,8 @@ const useCases = [
     outcome: '85% confidence • 3 resources found • Applied within 20 minutes',
     colorHex: '#ec4899',
     bgColor: 'rgba(236,72,153,0.06)',
-    initials: 'JM',
-    name: 'Jessica M.',
+    initials: 'DS',
+    name: 'Designed scenario',
   },
   {
     icon: HeartHandshake,
@@ -510,8 +510,8 @@ const useCases = [
     outcome: '92% confidence • 2 resources found • Delivery scheduled same day',
     colorHex: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
-    initials: 'RH',
-    name: 'Robert H.',
+    initials: 'DS',
+    name: 'Designed scenario',
   },
   {
     icon: Shield,
@@ -521,8 +521,8 @@ const useCases = [
     outcome: '94% confidence • Crisis check passed • Connected to VA support',
     colorHex: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.06)',
-    initials: 'MT',
-    name: 'Marcus T.',
+    initials: 'DS',
+    name: 'Designed scenario',
   },
   {
     icon: GraduationCap,
@@ -532,8 +532,8 @@ const useCases = [
     outcome: '88% confidence • 4 resources found • Crisis line provided',
     colorHex: '#8b5cf6',
     bgColor: 'rgba(139,92,246,0.06)',
-    initials: 'AK',
-    name: 'Aisha K.',
+    initials: 'DS',
+    name: 'Designed scenario',
   },
   {
     icon: Scale,
@@ -543,8 +543,8 @@ const useCases = [
     outcome: '79% confidence • 2 resources found • Clarification questions asked first',
     colorHex: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',
-    initials: 'CL',
-    name: 'Carlos L.',
+    initials: 'DS',
+    name: 'Designed scenario',
   },
 ]
 

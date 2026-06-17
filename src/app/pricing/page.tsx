@@ -280,7 +280,7 @@ const testimonials = [
   },
   {
     initials: 'JK',
-    name: 'James Kim',
+    name: 'Designed scenario — not a real testimonial',
     role: 'Social Worker · Pro Plan (Illustrative testimonial for demonstration purposes)',
     quote: "Pro's saved history means I can follow up with clients across sessions. I don't have to re-explain their situation every time. It saves me at least 30 minutes per client.",
     color: 'bg-blue-100 text-blue-700',
@@ -296,7 +296,7 @@ const testimonials = [
   },
   {
     initials: 'DW',
-    name: 'Dr. David Washington',
+    name: 'Designed scenario — not a real testimonial',
     role: 'Hospital Administrator · Enterprise (Illustrative testimonial for demonstration purposes)',
     quote: 'The API integration lets us embed ClearPath directly into our patient intake workflow. Our social workers don\'t have to switch tools anymore.',
     color: 'bg-amber-100 text-amber-700',
