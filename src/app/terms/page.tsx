@@ -996,10 +996,7 @@ export default function TermsPage() {
                   <div className="p-4 rounded-xl bg-gray-50/60 border border-gray-100">
                     <p className="font-semibold text-gray-800 text-[14px] mb-1">Remediation Timeline</p>
                     <p className="text-[13px] text-gray-400 leading-relaxed">
-                      We are actively working to address these limitations. Our remediation targets are:
-                      prefers-reduced-motion support (Q3 2026), improved screen reader compatibility
-                      (Q3 2026), and full WCAG 2.1 AA conformance (Q4 2026). We prioritize accessibility
-                      fixes alongside safety-critical updates.
+                      Honest status: we are two high school students who built this for a hackathon in June 2026. We have not yet committed to specific remediation dates for prefers-reduced-motion support, screen reader compatibility, or WCAG 2.1 AA conformance. We know these matter. If ClearPath AI becomes a real product after the hackathon, accessibility will be a priority. For now, we cannot promise specific dates.
                     </p>
                   </div>
                   <div className="p-4 rounded-xl bg-blue-50/30 border border-blue-100/40">

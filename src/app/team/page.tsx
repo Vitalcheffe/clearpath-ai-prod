@@ -260,7 +260,7 @@ const howWeWork = [
   {
     step: '06',
     title: 'Iterate with Community Feedback',
-    description: 'After every release, we gather feedback from community navigators, beta testers, and real users. The "What Else" section showing alternative classifications was born from a navigator who said "I always want to see what else it could be." We listen, we learn, and we improve — because the people we serve deserve our best.',
+    description: 'After every iteration, we gathered feedback from ourselves (the 2-person team) and tested against scenarios we wrote. We have not yet run an external beta test. The "What Else" section showing alternative classifications was born from a question we asked: "what if the user wants to see what else it could be?" We listen, we learn, and we improve — but we are honest that the feedback loop is currently just us.',
     icon: MessageSquare,
     color: '#ec4899',
     bgColor: 'rgba(236,72,153,0.06)',
@@ -1829,8 +1829,8 @@ export default function TeamPage() {
                   date: 'March 2026',
                 },
                 {
-                  title: '50+ Community Navigator Beta Testers',
-                  desc: 'Over only us (2-person team) from 5 states participated in our beta testing program, providing over 200 pieces of feedback that directly shaped the product. The "What Else" section was born from their input.',
+                  title: 'Internal Scenario Testing (No External Beta Yet)',
+                  desc: 'Honest status: no external beta test was run. The 2-person team tested against scenarios we wrote ourselves. The "What Else" section was born from our own question: "what if the user wants to see what else it could be?" We have not had external navigators test the product yet — that is on the roadmap.',
                   icon: Users,
                   color: '#3b82f6',
                   date: 'May 2026',
@@ -1928,7 +1928,7 @@ export default function TeamPage() {
                 },
                 {
                   q: 'How can I get involved before applying?',
-                  a: 'Try the demo at clearpath.ai/app and share your feedback. Join our community discussions. If you\'re a developer, explore our open-source architecture documentation. If you\'re a community navigator, sign up for our beta testing program. The best way to understand our mission is to experience the product yourself — and then tell us what we can do better.',
+                  a: 'Try the demo at /app and share your feedback by email. Explore our open-source code on GitHub. We have not set up an external beta testing program yet — if you are a community navigator interested in testing ClearPath AI with real cases, email us and we will get back to you after the hackathon.',
                 },
               ].map((faq) => (
                 <motion.div
