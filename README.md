@@ -80,7 +80,7 @@ npm run dev
 ## Team
 
 - **Amine Harch El Korane** (Morocco) — Project Lead, AI Pipeline, Pitch
-- **Harshit Singh** (India) — Full-Stack Engineer, DevOps
+- **Ghali El Alj** (Morocco) — Full-Stack Engineer, DevOps
 
 ## Documentation
 
