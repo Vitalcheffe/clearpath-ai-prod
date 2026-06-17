@@ -10,6 +10,76 @@ const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
 // ─── Boot-time diagnostic (runs once when serverless function cold-starts) ───
 console.log(`[classify:boot] HF_API_KEY present: ${!!HF_API_KEY}`);
 
+// ─── Abuse protection ─────────────────────────────────────
+// In-memory rate limiter (per Vercel serverless instance — not perfect, but
+// raises the bar for bots spamming the public endpoint). For a real production
+// app we would use Upstash Redis, but for a hackathon this is enough.
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 15;  // 15 requests per minute per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+// Block obvious bot User-Agents. Real browsers send a UA with "Mozilla" and
+// usually "Gecko" or "AppleWebKit" or "Chrome" or "Safari". curl, python-requests,
+// scrapy, axios, got, node-fetch — these are bots.
+const BLOCKED_UA_PATTERNS = [
+  /^curl\//i,
+  /^python-requests\//i,
+  /^python-httpx\//i,
+  /^scrapy\//i,
+  /^axios\//i,
+  /^got\//i,
+  /^node-fetch\//i,
+  /^Go-http-client\//i,
+  /^Java\//i,
+  /^Apache-HttpClient\//i,
+  /^okhttp\//i,
+  /^PostmanRuntime\//i,
+  /^insomnia\//i,
+  /^HTTPie\//i,
+  /^Wget\//i,
+  /^bot\//i,
+  /^crawler\//i,
+  /^spider\//i,
+  /^headless/i,
+];
+
+function getClientIp(request: NextRequest): string {
+  // Vercel sets these headers — x-forwarded-for is the standard
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) return realIp.trim();
+  return 'unknown';
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  }
+  
+  entry.count += 1;
+  if (entry.count > RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: entry.resetAt };
+  }
+  
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetAt: entry.resetAt };
+}
+
+// Cleanup old entries every 5 minutes to avoid memory leak in long-lived instances
+let lastCleanup = Date.now();
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanup < 5 * 60_000) return;
+  lastCleanup = now;
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) rateLimitMap.delete(ip);
+  }
+}
+
 // ─── Crisis Detection (regex-based, deterministic, AI NEVER trusted for crisis) ───
 const CRISIS_PATTERNS = [
   // ─── Suicidal ideation ───
@@ -60,6 +130,18 @@ const CRISIS_PATTERNS = [
   /want\s+to\s+disappear/i,
   /want\s+to\s+fall\s+asleep\s+(and\s+)?never/i,
   /no\s+point\s+in\s+living/i,
+
+  // ─── Passive suicidal ideation — phrases that don't say "die" but mean it ───
+  /i\s+(just\s+)?want\s+(everything|it|this|all)\s+to\s+(stop|end)/i,
+  /i\s+(just\s+)?want\s+(everything|it|this)\s+to\s+go\s+away/i,
+  /i\s+can'?t\s+do\s+this\s+(anymore|any\s+longer)/i,
+  /i'?m\s+tired\s+of\s+(being\s+alive|living|existing)/i,
+  /i\s+don'?t\s+want\s+to\s+wake\s+up/i,
+  /i\s+want\s+to\s+fall\s+asleep\s+and\s+never\s+wake/i,
+  /i'?m\s+done\s+(with\s+everything|with\s+life|living)/i,
+  /no\s+reason\s+to\s+keep\s+(going|trying)/i,
+  /i'?ve\s+given\s+up/i,
+  /everyone\s+would\s+be\s+better\s+off\s+without\s+me/i,
 
   // ─── Medical emergency — "I'm dying" only standalone, NOT "I'm dying for a coffee" or "I'm dying laughing" ───
   /i'?m\s+dying\b(?!\s+(for|to|of|from|laughing|laugh))/i,
@@ -641,8 +723,53 @@ function getResourcesForCategory(category: string, cityId: string, userLat?: num
 // ─── POST Handler ──────────────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
+    // ─── Abuse protection: bot detection ───
+    const userAgent = request.headers.get('user-agent') || '';
+    if (!userAgent) {
+      return NextResponse.json(
+        { error: 'User-Agent header required' },
+        { status: 400 }
+      );
+    }
+    if (BLOCKED_UA_PATTERNS.some(p => p.test(userAgent))) {
+      console.warn(`[classify] Blocked bot User-Agent: ${userAgent.substring(0, 100)}`);
+      return NextResponse.json(
+        { error: 'Automated requests are not allowed. Please use the web interface.' },
+        { status: 403 }
+      );
+    }
+
+    // ─── Abuse protection: rate limiting ───
+    cleanupRateLimitMap();
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      const retryAfterSec = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      console.warn(`[classify] Rate limit exceeded for IP ${clientIp}`);
+      return NextResponse.json(
+        { error: 'Too many requests. Please slow down.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(retryAfterSec),
+            'X-RateLimit-Limit': String(RATE_LIMIT_MAX_REQUESTS),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { text, lat, lng, cityId: explicitCityId } = body;
+
+    // ─── Input validation ───
+    if (typeof text !== 'string' || text.length > 2000) {
+      return NextResponse.json(
+        { error: 'Text input must be a string of 2000 characters or fewer.' },
+        { status: 400 }
+      );
+    }
 
     const userLat = typeof lat === 'number' && lat >= -90 && lat <= 90 ? lat : undefined;
     const userLng = typeof lng === 'number' && lng >= -180 && lng <= 180 ? lng : undefined;
