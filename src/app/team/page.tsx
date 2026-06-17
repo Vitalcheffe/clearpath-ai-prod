@@ -242,7 +242,7 @@ const howWeWork = [
   {
     step: '04',
     title: 'Test Relentlessly',
-    description: 'We test against hundreds of real-world scenarios from the 211 database. We stress-test crisis detection with edge cases — misspelled crisis words, non-English inputs, ambiguous phrasing. We test accessibility with screen readers, keyboard navigation, and reduced motion. If it can break, we find out before our users do.',
+    description: 'Honest status: we tested against scenarios we wrote ourselves — a small set, not hundreds. We tested edge cases like "I want to die" vs "I\'m dying laughing", non-English inputs, and ambiguous phrasing. We have not done formal accessibility testing with screen readers yet. We have not had external users test the system. What we tested, we tested carefully. What we did not test, we are honest about.',
     icon: TestTube2,
     color: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
@@ -304,8 +304,8 @@ const timeline = [
   },
   {
     month: 'May 2026',
-    title: 'Beta Testing',
-    desc: 'We spent the entire month of May testing and iterating with real users. We ran the system against hundreds of real-world scenarios from the 211 database. We stress-tested crisis detection with edge cases — misspelled crisis words, non-English inputs, ambiguous phrasing. We calibrated confidence thresholds based on actual classification accuracy. Community navigators from 5 states tested the system and provided feedback that shaped the UI. The "What Else" section (showing alternative classifications) was born from a navigator who said "I always want to see what else it could be."',
+    title: 'Internal Testing (Not Beta)',
+    desc: 'Honest status: no external beta test was run. We tested the system against a small set of scenarios we wrote ourselves in May 2026 — not hundreds of real-world scenarios. We tested edge cases like "I want to die" vs "I\'m dying laughing", non-English inputs, and ambiguous phrasing. No community navigators from 5 states tested the system. The "What Else" section was born from our own question: "what if the user wants to see what else it could be?" External beta testing is on our roadmap, post-hackathon.',
     icon: FileCheck,
     color: '#8b5cf6',
     dotColor: 'bg-purple-400',
@@ -1174,14 +1174,14 @@ export default function TeamPage() {
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             >
               {[
-                { value: '6', label: 'Verified Resources', icon: Database, color: '#10b981', desc: 'Across all 50 states' },
-                { value: '175 patterns', label: 'Crisis Detection Rate', icon: ShieldAlert, color: '#ef4444', desc: 'Hardcoded safety layer' },
-                { value: '<2s', label: 'Average Response Time', icon: Zap, color: '#3b82f6', desc: 'Classification inference' },
+                { value: '6', label: 'Cities Covered', icon: Database, color: '#10b981', desc: 'Hand-verified May 2026' },
+                { value: '175', label: 'Crisis Regex Patterns', icon: ShieldAlert, color: '#ef4444', desc: 'Hardcoded safety layer' },
+                { value: '3', label: 'Fallback Tiers', icon: Zap, color: '#3b82f6', desc: 'Raw fetch → SDK → keyword' },
                 { value: '0', label: 'Data Points Stored', icon: Lock, color: '#8b5cf6', desc: 'Zero retention architecture' },
-                { value: '6', label: 'Transparency Layers', icon: Layers, color: '#f59e0b', desc: 'Every result auditable' },
-                { value: '8', label: 'Languages Planned', icon: Languages, color: '#ec4899', desc: 'Multilingual expansion' },
-                { value: '500+', label: 'Test Scenarios', icon: TestTube2, color: '#14b8a6', desc: 'Edge cases covered' },
-                { value: '50+', label: 'Community Navigators', icon: Users, color: '#06b6d4', desc: 'Beta testing network' },
+                { value: '6', label: 'Pipeline Layers', icon: Layers, color: '#f59e0b', desc: 'Every result auditable' },
+                { value: '8', label: 'BART Categories', icon: Languages, color: '#ec4899', desc: 'Zero-shot NLI labels' },
+                { value: '~30', label: 'Test Scenarios', icon: TestTube2, color: '#14b8a6', desc: 'Written by us (not 500+)' },
+                { value: '0', label: 'External Beta Testers', icon: Users, color: '#06b6d4', desc: 'Honest: none yet' },
               ].map((stat) => {
                 const StatIcon = stat.icon
                 return (
@@ -1973,39 +1973,39 @@ export default function TeamPage() {
             >
               {[
                 {
-                  phase: 'Q3 2026',
+                  phase: 'After hackathon',
                   title: 'Multilingual Support',
-                  desc: 'Expanding classification to Spanish, Mandarin, Arabic, and Vietnamese. We believe language should never be a barrier to finding help — and 67 million Americans speak a language other than English at home.',
-                  status: 'In Progress',
+                  desc: 'Honest status: this is a roadmap item, not a committed date. If ClearPath AI becomes a real product, we want to expand classification to Spanish, Mandarin, Arabic, and Vietnamese. We have not started this work yet. 67 million Americans speak a language other than English at home — but right now, ClearPath AI only works in English.',
+                  status: 'Idea',
                   statusColor: '#10b981',
                   icon: Languages,
                 },
                 {
-                  phase: 'Q3 2026',
+                  phase: 'After hackathon',
                   title: 'Voice Input & Accessibility',
-                  desc: 'Adding speech-to-text input for users who can\'t type — including elderly users, people with motor disabilities, and anyone in a situation where typing isn\'t safe. We\'re designing the voice interface with crisis scenarios in mind: if someone whispers "I need help," the system should work.',
-                  status: 'Planning',
+                  desc: 'Honest status: idea stage only. We want to add speech-to-text input for users who can\'t type — elderly users, people with motor disabilities, anyone in a situation where typing isn\'t safe. We have not started building this. If someone whispers "I need help," the system should work — but today it does not.',
+                  status: 'Idea',
                   statusColor: '#3b82f6',
                   icon: Headphones,
                 },
                 {
-                  phase: 'Q4 2026',
+                  phase: 'After hackathon',
                   title: '211 API for Nonprofits',
-                  desc: 'Opening our classification API to other nonprofits and community organizations. If a food bank in rural Kansas wants to use our technology to help their clients, they should be able to — without building anything from scratch. The API will be free for nonprofits, forever.',
-                  status: 'Planning',
+                  desc: 'Honest status: idea stage. We want to open our classification API to other nonprofits — free, forever. But the API is currently internal and undocumented. We have not started making it public. If a food bank in rural Kansas wants to use this today, they would need to fork the GitHub repo.',
+                  status: 'Idea',
                   statusColor: '#8b5cf6',
                   icon: Server,
                 },
                 {
-                  phase: 'Q4 2026',
+                  phase: 'After hackathon',
                   title: 'Offline-First Mode',
-                  desc: 'Building a lightweight version that works without internet access. In many rural communities, reliable internet isn\'t available. We\'re exploring progressive web app technology and local model compression to ensure that a social worker in a dead zone can still classify resource needs.',
-                  status: 'Research',
+                  desc: 'Honest status: idea stage. We want to build a lightweight version that works without internet access for rural communities. We have not started. We are exploring PWA technology and local model compression, but today ClearPath AI requires an internet connection and the HuggingFace Inference API.',
+                  status: 'Idea',
                   statusColor: '#f59e0b',
                   icon: Wifi,
                 },
                 {
-                  phase: 'Q1 2027',
+                  phase: 'After hackathon',
                   title: 'Real-Time Crisis Chat',
                   desc: 'Integrating a real-time chat system with trained crisis counselors. When our crisis detection layer triggers, the user will be connected not just to a phone number, but to a live chat with a trained professional within 60 seconds. Every second counts in a crisis.',
                   status: 'Future',
@@ -2013,9 +2013,9 @@ export default function TeamPage() {
                   icon: MessageSquare,
                 },
                 {
-                  phase: 'Q1 2027',
+                  phase: 'After hackathon',
                   title: 'Community Dashboard',
-                  desc: 'A public dashboard showing real-time community resource availability, gaps in services, and underserved areas. This data will help policymakers understand where resources are needed most — because you can\'t fix what you can\'t see.',
+                  desc: 'Honest status: idea stage. We want a public dashboard showing real-time community resource availability, gaps in services, and underserved areas. This would require infrastructure we do not have today. Idea only.',
                   status: 'Future',
                   statusColor: '#06b6d4',
                   icon: BarChart3,
