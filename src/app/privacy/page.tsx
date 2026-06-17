@@ -540,14 +540,14 @@ export default function PrivacyPage() {
               </div>
               <div className="space-y-4 text-[15px] text-gray-500 leading-relaxed pl-0 md:pl-14">
                 <p>
-                  ClearPath AI is designed with <span className="font-semibold text-gray-700">privacy-first principles aligned with COPPA best practices</span> for
-                  users of all ages, including children and teenagers who may need community resources. Formal compliance certification is pending.
+                  ClearPath AI is designed with <span className="font-semibold text-gray-700">privacy-first principles (no personal data collected from anyone)</span> for
+                  users of all ages, including children and teenagers who may need community resources. No formal compliance certification — this is a hackathon build.
                 </p>
                 <ul className="space-y-2.5">
                   {[
                     'We do not knowingly collect personal information from children under 13',
                     'Account creation is optional — guests need no names, emails, or birthdays; accounts require minimal information',
-                    'Guest sessions are in-memory only; authenticated children\'s data would require parental consent per COPPA',
+                    'There is no authentication system. No personal data is collected from anyone — adult or minor.'
                     'Crisis detection works the same way for all users, including children, ensuring immediate access to help',
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">

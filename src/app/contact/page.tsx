@@ -101,7 +101,7 @@ const faqs = [
   },
   {
     question: 'Is my communication with ClearPath AI confidential?',
-    answer: 'Yes. All communications are encrypted in transit and at rest. We never share your personal information with third parties. Crisis-related communications follow additional HIPAA-adjacent protocols. You can read our full privacy policy at /privacy.',
+    answer: 'Communications are encrypted in transit (HTTPS/TLS). We do not store data at rest — there is no database of user queries. There is no HIPAA-adjacent protocol because we do not collect health information. You can read our full privacy policy at /privacy.'
   },
   {
     question: 'Can I partner with ClearPath AI for my organization?',
@@ -113,55 +113,38 @@ const faqs = [
   },
   {
     question: 'What are your support hours?',
-    answer: 'Our crisis escalation pathway operates 24/7 through 988 and 211. Email support is available Monday through Friday, 9 AM - 6 PM ET. Technical support for API users is available Monday through Friday, 8 AM - 8 PM ET. Community forum support is peer-driven and available around the clock.',
+    answer: 'We do not have support hours — this is a hackathon build by two high school students, not a staffed service. For crisis support, call 988 (24/7) or dial 211 (24/7 in most US areas). For technical questions about the project, email us and we will reply when we can. There is no SLA, no support ticket system, and no API user technical support tier — those would be honest to offer only if this becomes a real product.',
   },
   {
     question: 'How quickly will I receive a response?',
-    answer: 'Response times depend on priority: Crisis issues are routed immediately to 988/211. High-priority technical issues receive a response within 4 hours. Medium-priority inquiries within 24 hours. Low-priority questions within 48 hours. We track and publish our SLA compliance monthly.',
+    answer: 'Honest answer: this is a hackathon build by two high school students. We do not have an SLA, a support team, or guaranteed response times. If you email us, we will reply when we can — usually within a few days. For crisis issues, do not email — call 988 (Suicide & Crisis Lifeline) or dial 211 for local resources. Those services are staffed 24/7 by trained professionals.',
   },
   {
     question: 'Is ClearPath AI free to use?',
-    answer: 'The core resource navigator is and will remain free for individuals. Organizations requiring API access, custom integrations, or dedicated support can explore our pricing plans at /pricing. We believe access to community resources should never be paywalled.',
+    answer: 'Yes. There is no paid tier, no API access to sell, no enterprise plan. The codebase is open source on GitHub. Anyone can fork it, self-host it, or extend it for their own community. We built this for the hackathon, not as a commercial product.',
   },
 ]
 
 /* ═══ Team Members Data ═══ */
+// Honest status: 2-person team. No "Sarah K. community lead", no "Dr. Lisa M. AI ethics advisor" — those were placeholder personas and have been removed. Real team members only.
 const teamMembers = [
   {
-    name: 'Amine B.',
-    role: 'Founder & Lead Architect',
-    expertise: 'AI Safety, NLP, System Design',
-    bio: 'Built the 6-layer transparency architecture after witnessing how broken resource navigation was in his community. Leads the vision of classified-not-generated AI.',
+    name: 'Amine Harch El Korane',
+    role: 'Co-Founder & AI Pipeline Lead',
+    expertise: 'AI Safety, BART-large-MNLI, Crisis Regex Engineering, Pitch',
+    bio: 'High school student from Morocco. Owns the AI pipeline — 6-layer classify flow, 175-pattern crisis regex, confidence-gated clarification, and the Devpost submission.',
     icon: Brain,
     color: '#3b82f6',
     gradient: 'from-blue-500 to-blue-600',
   },
   {
-    name: 'Amine H.',
-    role: 'Full-Stack Engineer',
-    expertise: 'Next.js, TypeScript, ML Integration',
-    bio: 'Engineered the ClearPath AI demo from the ground up. Specializes in building production-ready systems that handle real-world edge cases with grace.',
+    name: 'Ghali El Alj',
+    role: 'Co-Founder & Full-Stack Engineer',
+    expertise: 'Next.js 16, TypeScript, Prisma, Vercel Deployment',
+    bio: 'High school student from Morocco. Owns the full-stack implementation — API routes, 3-tier fallback pipeline, Prisma data layer, multi-city resource database covering 6 US cities.',
     icon: Code2,
     color: '#10b981',
     gradient: 'from-emerald-500 to-teal-600',
-  },
-  {
-    name: 'Sarah K.',
-    role: 'Community & Partnerships Lead',
-    expertise: 'Nonprofit Relations, Crisis Response',
-    bio: "Former 211 operator who saw the system's failures firsthand. Now builds bridges between ClearPath AI and the organizations that serve people in crisis.",
-    icon: Handshake,
-    color: '#f59e0b',
-    gradient: 'from-amber-500 to-orange-600',
-  },
-  {
-    name: 'Dr. Lisa M.',
-    role: 'Responsible AI Advisor',
-    expertise: 'AI Ethics, Bias Mitigation, Safety',
-    bio: "Ensures ClearPath AI's confidence calibration and escalation protocols meet the highest ethical standards. Researcher in AI safety and fairness.",
-    icon: ShieldCheck,
-    color: '#8b5cf6',
-    gradient: 'from-violet-500 to-purple-600',
   },
 ]
 
@@ -401,7 +384,7 @@ const supportCategories = [
   {
     icon: Lock,
     title: 'Privacy & Security',
-    description: 'Questions about data handling, encryption, HIPAA compliance, or our privacy-first architecture. We take transparency in security seriously.',
+    description: 'Questions about data handling, encryption, or our privacy-first architecture. We do not claim privacy-first architecture (no PII stored) — we do not collect health information.'
     color: '#8b5cf6',
     examples: ['Data retention policies', 'Encryption standards', 'Third-party data sharing'],
   },
@@ -488,7 +471,7 @@ const partnerTiers = [
     description: 'For mid-size organizations that need deeper integration, dedicated support, and custom resource classification for their communities.',
     features: [
       'Everything in Community, plus:',
-      'Extended API access (50,000 calls/month)',
+      '(No API tier — this is a hackathon build)'
       'Custom resource classification',
       'Dedicated partnership manager',
       'Monthly sync calls',
@@ -511,7 +494,7 @@ const partnerTiers = [
       'On-premise deployment options',
       'Dedicated engineering liaison',
       'Quarterly business reviews',
-      'HIPAA-compliant data handling',
+      'No PII collected (privacy-first)'
     ],
     color: '#8b5cf6',
     gradient: 'from-violet-500 to-purple-600',
@@ -1911,8 +1894,8 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     {[
                       { icon: Shield, title: 'Transparent AI', desc: '6-layer confidence architecture with full auditability' },
-                      { icon: Users, title: '50K+ Resources', desc: 'Verified, up-to-date community resource database' },
-                      { icon: Lock, title: 'HIPAA-Adjacent', desc: 'Privacy-first design with encryption at rest and in transit' },
+                      { icon: Users, title: '6 Cities', desc: 'Hand-curated resources, verified May 2026' },
+                      { icon: Lock, title: 'No PII Stored', desc: 'Privacy-first design, encryption in transit only' },
                       { icon: Eye, title: 'Open Source', desc: 'All code publicly auditable on GitHub — no black boxes' },
                     ].map((benefit) => {
                       const BenefitIcon = benefit.icon
@@ -2515,7 +2498,7 @@ export default function ContactPage() {
               {[
                 { label: 'GitHub Stars', value: '128+', icon: CheckCircle2, color: '#f59e0b' },
                 { label: 'Contributors', value: '12+', icon: Users, color: '#3b82f6' },
-                { label: 'Resources Verified', value: '50K+', icon: FileCheck, color: '#10b981' },
+                { label: 'Cities Covered', value: '6', icon: FileCheck, color: '#10b981' },
                 { label: 'Issues Resolved', value: '94%', icon: BadgeCheck, color: '#8b5cf6' },
               ].map((stat) => {
                 const StatIcon = stat.icon

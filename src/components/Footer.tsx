@@ -111,7 +111,7 @@ const trustBadges = [
     bgColor: 'rgba(59, 130, 246, 0.08)',
     borderColor: 'rgba(59, 130, 246, 0.15)',
     desc: 'Verified resources',
-    detail: '23 verified community resources from United Way 211 database.',
+    detail: 'Resources hand-curated from public 211.org listings — no formal partnership.',
   },
   {
     label: 'Open source',
@@ -470,16 +470,16 @@ export default function Footer() {
                 {/* Quick stats */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-lg bg-gray-800/20 border border-gray-800/40">
-                    <div className="text-[18px] font-bold text-white leading-none">50K+</div>
+                    <div className="text-[18px] font-bold text-white leading-none">6</div>
                     <div className="text-[10px] text-gray-500 mt-1">Verified resources</div>
                   </div>
                   <div className="p-3 rounded-lg bg-gray-800/20 border border-gray-800/40">
-                    <div className="text-[18px] font-bold text-white leading-none">99.7%</div>
+                    <div className="text-[18px] font-bold text-white leading-none">175</div>
                     <div className="text-[10px] text-gray-500 mt-1">Crisis detection</div>
                   </div>
                   <div className="p-3 rounded-lg bg-gray-800/20 border border-gray-800/40">
                     <div className="text-[18px] font-bold text-white leading-none">100%</div>
-                    <div className="text-[10px] text-gray-500 mt-1">Encrypted at rest</div>
+                    <div className="text-[10px] text-gray-500 mt-1">No data stored</div>
                   </div>
                   <div className="p-3 rounded-lg bg-gray-800/20 border border-gray-800/40">
                     <div className="text-[18px] font-bold text-white leading-none">24/7</div>

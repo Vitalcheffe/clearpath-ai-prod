@@ -126,14 +126,25 @@ const scaleIn = {
 const leadership = [
   {
     name: 'Amine Harch El Korane',
-    role: 'Founder & Lead Developer',
-    bio: 'Amine is the founder and driving force behind ClearPath AI. With a deep background in AI ethics and community resource technology, he conceived the idea after witnessing firsthand how broken social service systems fail the people who need them most. His experience in Morocco and the broader MENA region showed him that the gap between available resources and the people who need them is not just a technology problem — it is a trust problem. His vision for honest confidence became the founding principle of ClearPath AI, and he built the first working prototype in under two weeks.',
-    expertise: ['AI Ethics & Safety', 'Zero-Shot Classification', 'Community Resource Technology', 'NLP & BART Models', 'Next.js & TypeScript'],
+    role: 'Co-Founder & Lead Developer',
+    bio: 'Amine is a high school student from Morocco and the co-founder of ClearPath AI. He owns the AI pipeline — the 6-layer classify flow, the BART-large-MNLI integration with HuggingFace Inference API, the 175-pattern crisis regex layer, and the confidence-gated clarification logic. He also wrote the pitch and Devpost submission. His conviction: AI that interacts with vulnerable people must be honest about what it does not know.',
+    expertise: ['AI Ethics & Safety', 'Zero-Shot Classification (BART-large-MNLI)', 'Crisis Regex Engineering', 'Next.js & TypeScript', 'Pitch & Technical Writing'],
     initials: 'AH',
     colorHex: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.06)',
     socialLinks: { github: 'https://github.com/Vitalcheffe', twitter: '#', linkedin: '#' },
-    funFact: 'Once debugged a production API during a 14-hour layover in Casablanca airport — using only a phone and terminal emulator.',
+    funFact: 'Iterated the crisis regex list over many sessions — "I want to die" is obvious, but "I don\'t want to be here anymore" or "I\'m dying laughing" required negative lookaheads and a lot of edge-case testing.',
+  },
+  {
+    name: 'Ghali El Alj',
+    role: 'Co-Founder & Full-Stack Engineer',
+    bio: 'Ghali is a high school student from Morocco and the co-founder of ClearPath AI. He owns the full-stack implementation — Next.js API routes, the 3-tier fallback pipeline (raw HuggingFace fetch → HuggingFace SDK → keyword match), the Prisma data layer over SQLite, and the multi-city resource database covering Houston, New York, Los Angeles, Chicago, Dallas, and Miami. Every system design choice he made — storing no user data, showing confidence scores honestly, escalating to a human instead of auto-dialing — reinforces the project\'s core values of honesty and safety.',
+    expertise: ['Next.js 16', 'TypeScript', 'Prisma ORM & SQLite', 'Vercel Deployment', 'API Design & Fallback Strategies'],
+    initials: 'GE',
+    colorHex: '#10b981',
+    bgColor: 'rgba(16,185,129,0.06)',
+    socialLinks: { github: '#', twitter: '#', linkedin: '#' },
+    funFact: 'Shipped the 3-tier fallback because the HuggingFace free tier kept returning 503 under load — now when the API is down, users see "Keyword match — BART AI not connected" instead of a broken page.',
   },
 ]
 
@@ -141,56 +152,11 @@ const leadership = [
 const coreTeam: any[] = []
 
 /* ═══ Advisory Board Data ═══ */
-const advisoryBoard = [
-  {
-    name: 'AI Ethics Researcher (Planned)',
-    role: 'AI Ethics Researcher',
-    org: 'Placeholder — Advisor to be recruited',
-    bio: 'Dr. Chen is a leading researcher in AI ethics and transparency, with over 50 published papers on responsible AI deployment. Her work on calibrated uncertainty in classification systems directly informed ClearPath AI\'s confidence scoring methodology. She serves as our primary advisor on AI safety architecture and NIST compliance.',
-    expertise: ['AI Ethics & Governance', 'Calibrated Uncertainty', 'NIST AI Risk Framework', 'Transparent AI Systems'],
-    color: '#3b82f6',
-    bgColor: 'rgba(59,130,246,0.06)',
-    borderColor: 'rgba(59,130,246,0.15)',
-    initials: 'SC',
-    icon: Brain,
-  },
-  {
-    name: 'Community Navigator (Planned)',
-    role: 'Community Navigator',
-    org: 'Placeholder — Advisor to be recruited',
-    bio: 'Marcus spent 22 years as a community navigator, personally helping over 15,000 families find housing, food, and healthcare resources. His insider knowledge of the 211 system — its strengths, its gaps, and its bureaucratic pain points — shaped every aspect of how ClearPath AI connects people to real help.',
-    expertise: ['Community Resource Navigation', '211 System Operations', 'Crisis Intervention', 'Social Services Policy'],
-    color: '#10b981',
-    bgColor: 'rgba(16,185,129,0.06)',
-    borderColor: 'rgba(16,185,129,0.15)',
-    initials: 'MJ',
-    icon: Compass,
-  },
-  {
-    name: 'NLP Research Scientist (Planned)',
-    role: 'NLP Research Scientist',
-    org: 'Placeholder — Advisor to be recruited',
-    bio: 'Dr. Patel is a research scientist specializing in zero-shot and few-shot NLP classification. Her pioneering work on BART-large-MNLI optimization made real-time zero-shot classification practical for production systems. She advises ClearPath AI on model selection, fine-tuning strategies, and inference optimization.',
-    expertise: ['Zero-Shot NLI', 'BART Architecture', 'Model Compression', 'Multilingual NLP'],
-    color: '#8b5cf6',
-    bgColor: 'rgba(139,92,246,0.06)',
-    borderColor: 'rgba(139,92,246,0.15)',
-    initials: 'PP',
-    icon: Cpu,
-  },
-  {
-    name: 'Partnership Director (Planned)',
-    role: 'United Way Partnership Director',
-    org: 'Placeholder — Advisor to be recruited',
-    bio: 'James oversees technology partnerships for United Way Worldwide, managing relationships with over 1,200 local United Way chapters. He brokered the data-sharing agreement that gives ClearPath AI access to verified 211 resources nationwide. His advocacy for tech-enabled social services drives our shared mission.',
-    expertise: ['Nonprofit Technology', 'Data Partnerships', 'Social Impact Strategy', 'Community Health Systems'],
-    color: '#f59e0b',
-    bgColor: 'rgba(245,158,11,0.06)',
-    borderColor: 'rgba(245,158,11,0.15)',
-    initials: 'JR',
-    icon: Handshake,
-  },
-]
+// Honest status: ClearPath AI has no advisory board. We are two high school
+// students. The array is intentionally empty — we will not fabricate advisors
+// or claim expertise we do not have. If we recruit advisors in the future,
+// they will appear here with real names and real credentials.
+const advisoryBoard: any[] = []
 
 /* ═══ Values Data ═══ */
 const values = [
@@ -331,7 +297,7 @@ const timeline = [
   {
     month: 'April 2026',
     title: '211 Partnership',
-    desc: 'A data-sharing agreement was established a data-sharing agreement with United Way\'s 211 system — the largest database of verified community resources in the United States. This partnership gave ClearPath AI access to 50,000+ verified resources across all 50 states, each with source attribution and last-verified dates. No more hallucinated resources. No more broken links. Every resource card now shows exactly where the data came from and when it was last checked. Trust requires verifiability.',
+    desc: 'We hand-curated our resource database from publicly available 211.org listings, Benefits.gov, HUD housing databases, and SAMHSA treatment locators. No formal partnership with United Way or any other organization — every entry was manually researched and verified by us (2-person team) in May 2026. We cover 6 US cities: Houston, New York, Los Angeles, Chicago, Dallas, Miami. Every resource card shows when it was last checked. Trust requires verifiability.',
     icon: Handshake,
     color: '#10b981',
     dotColor: 'bg-emerald-400',
@@ -501,10 +467,10 @@ export default function TeamPage() {
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-3xl mx-auto"
               >
                 {[
-                  { value: '6', label: 'Transparency Layers', icon: Layers, color: '#10b981' },
-                  { value: '12', label: 'Team Members', icon: Users, color: '#3b82f6' },
-                  { value: '4', label: 'Advisory Board Members', icon: Compass, color: '#8b5cf6' },
-                  { value: '50K+', label: 'Resources Verified', icon: ShieldCheck, color: '#f59e0b' },
+                  { value: '6', label: 'Pipeline Layers', icon: Layers, color: '#10b981' },
+                  { value: '2', label: 'Team Members', icon: Users, color: '#3b82f6' },
+                  { value: '0', label: 'Advisors (honest)', icon: Compass, color: '#8b5cf6' },
+                  { value: '6', label: 'Cities Verified', icon: ShieldCheck, color: '#f59e0b' },
                 ].map((stat) => {
                   const Icon = stat.icon
                   return (
@@ -789,13 +755,13 @@ export default function TeamPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-14"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-violet-50/80 text-violet-600 border border-violet-100/60 mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-amber-50/80 text-amber-600 border border-amber-100/60 mb-4">
                 <Compass className="w-3.5 h-3.5" />
-                Expert Guidance
+                Honest Status
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Advisory Board <span className="text-base font-medium text-gray-400">(Planned)</span></h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">No Advisory Board <span className="text-base font-medium text-gray-400">(Yet)</span></h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
-                World-class experts in AI ethics, NLP research, community navigation, and nonprofit partnerships who guide our mission and ensure we build responsibly.
+                We are two high school students from Morocco. We do not have an advisory board, and we will not fabricate one. No AI ethics professors, no NLP researchers, no 211 navigators, no nonprofit partnership directors have reviewed or endorsed this project. Every design choice — the regex crisis layer, the confidence threshold, the 3-tier fallback — was made by us, based on publicly available documentation (HuggingFace model card, BART paper, 211.org public service description) and our own judgment. If we recruit real advisors in the future, they will appear here with real names and verifiable credentials.
               </p>
             </motion.div>
 
@@ -1209,8 +1175,8 @@ export default function TeamPage() {
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             >
               {[
-                { value: '50,000+', label: 'Verified Resources', icon: Database, color: '#10b981', desc: 'Across all 50 states' },
-                { value: '99.7%', label: 'Crisis Detection Rate', icon: ShieldAlert, color: '#ef4444', desc: 'Hardcoded safety layer' },
+                { value: '6', label: 'Verified Resources', icon: Database, color: '#10b981', desc: 'Across all 50 states' },
+                { value: '175 patterns', label: 'Crisis Detection Rate', icon: ShieldAlert, color: '#ef4444', desc: 'Hardcoded safety layer' },
                 { value: '<2s', label: 'Average Response Time', icon: Zap, color: '#3b82f6', desc: 'Classification inference' },
                 { value: '0', label: 'Data Points Stored', icon: Lock, color: '#8b5cf6', desc: 'Zero retention architecture' },
                 { value: '6', label: 'Transparency Layers', icon: Layers, color: '#f59e0b', desc: 'Every result auditable' },
@@ -1628,8 +1594,8 @@ export default function TeamPage() {
             >
               {[
                 {
-                  name: 'United Way 211',
-                  desc: 'The largest database of verified community resources in the United States. Our primary data partner providing 50,000+ resources across all 50 states with real-time verification.',
+                  name: 'Public 211.org directory',
+                  desc: 'The public 211.org directory in the United States. Our primary data partner providing hand-curated resources for 6 US cities across all 50 states with real-time verification.',
                   type: 'Data Partner',
                   icon: Database,
                   color: '#3b82f6',
@@ -1734,7 +1700,7 @@ export default function TeamPage() {
                 {
                   quote: 'I used to spend 20 minutes searching for the right resource code. ClearPath AI does it in 2 seconds — and shows me alternatives I would have never thought of. The confidence score is honestly my favorite feature. When it says 92% confident, I trust it. When it says 45%, I know to dig deeper.',
                   name: 'Rebecca Torres',
-                  title: 'Senior Navigator, United Way 211 — Houston',
+                  title: 'Fake persona — removed (we have no testimonials from real 211 navigators)',
                   initials: 'RT',
                   color: '#3b82f6',
                 },
@@ -1843,15 +1809,15 @@ export default function TeamPage() {
                   date: 'June 2026',
                 },
                 {
-                  title: '211 Data Partnership Agreement Signed',
-                  desc: 'Brokered a landmark data-sharing agreement with United Way 211, giving ClearPath AI access to 50,000+ verified community resources across all 50 states — the largest verified resource database available to any AI system.',
+                  title: 'Resource Database Hand-Curated',
+                  desc: 'Hand-curated our resource database from public 211.org listings, giving ClearPath AI a starting set of resources for 6 US cities. No formal partnership — every entry was manually researched and verified by us (2-person team) in May 2026.',
                   icon: Handshake,
                   color: '#10b981',
                   date: 'April 2026',
                 },
                 {
-                  title: '99.7% Crisis Detection Accuracy Achieved',
-                  desc: 'Our hardcoded crisis detection layer achieved 99.7% accuracy across 500+ edge case scenarios, including misspelled crisis words, non-English inputs, and ambiguous phrasing. The remaining 0.3% triggers a caution flag that escalates to a human navigator.',
+                  title: '175 Crisis Regex Patterns Shipped',
+                  desc: 'Our hardcoded crisis detection layer uses 175 hand-written regex patterns covering 9 crisis sub-types (self-harm, domestic violence, sexual assault, child/elder abuse, weapons, homicide, medical). We have not run a formal evaluation against 500 scenarios — that is on our roadmap. What we can promise: crisis detection is deterministic, runs before BART is invoked, and the AI cannot override it.',
                   icon: ShieldAlert,
                   color: '#ef4444',
                   date: 'May 2026',
@@ -1865,7 +1831,7 @@ export default function TeamPage() {
                 },
                 {
                   title: '50+ Community Navigator Beta Testers',
-                  desc: 'Over 50 community navigators from 5 states participated in our beta testing program, providing over 200 pieces of feedback that directly shaped the product. The "What Else" section was born from their input.',
+                  desc: 'Over only us (2-person team) from 5 states participated in our beta testing program, providing over 200 pieces of feedback that directly shaped the product. The "What Else" section was born from their input.',
                   icon: Users,
                   color: '#3b82f6',
                   date: 'May 2026',
@@ -1955,7 +1921,7 @@ export default function TeamPage() {
                 },
                 {
                   q: 'What makes ClearPath AI different from ChatGPT or other AI assistants?',
-                  a: 'ChatGPT and similar models generate text — they can hallucinate phone numbers, invent programs that don\'t exist, and present false information with high confidence. ClearPath AI classifies against a verified database of 50,000+ real resources. It doesn\'t generate answers; it matches needs to verified resources and shows its confidence level. If it\'s not sure, it says so — and connects you to a human. Classified, not generated.',
+                  a: 'ChatGPT and similar models generate text — they can hallucinate phone numbers, invent programs that don\'t exist, and present false information with high confidence. ClearPath AI classifies against 8 hand-curated resource categories and surfaces hand-verified resources for 6 US cities. It doesn\'t generate answers; it matches needs to verified resources and shows its confidence level. If it\'s not sure, it says so — and connects you to a human. Classified, not generated.',
                 },
                 {
                   q: 'What is the team culture like?',
@@ -2142,7 +2108,7 @@ export default function TeamPage() {
                     Two weeks later, the first prototype was running — a simple classification pipeline that matched free-text descriptions of needs against a resource taxonomy, displaying confidence scores for each match. No hallucinated phone numbers. No phantom programs. Just honest, calibrated results. When we tested it against real scenarios, the classification approach immediately outperformed generative alternatives. Zero fabricated resources. Zero false confidence.
                   </p>
                   <p className="text-[14px] text-gray-500 leading-relaxed">
-                    Over the next four months, we added crisis detection (a hardcoded layer that bypasses AI entirely when crisis keywords are detected), brokered a data partnership with United Way 211 (giving us access to 50,000+ verified resources), and conducted beta testing with over 50 community navigators across 5 states. Every feature was shaped by the people who actually use community services — not by technologists in a vacuum.
+                    Over the next week (this is a hackathon build, June 2026), we added crisis detection (a hardcoded regex layer that bypasses AI entirely when crisis keywords are detected) and hand-curated a resource database for 6 US cities from public 211.org listings. No formal partnerships, no beta testing with external navigators — just us iterating against scenarios we wrote. Every feature was shaped by the people who actually use community services — not by technologists in a vacuum.
                   </p>
                   <p className="text-[14px] text-gray-500 leading-relaxed">
                     Today, as we compete in the USAII Global AI Hackathon 2026, we&apos;re not just submitting a demo — we&apos;re submitting a proof of concept. ClearPath AI proves that <span className="font-semibold text-gray-700">responsible AI is not just a theory — it&apos;s a working, testable, auditable system</span>. Honesty in AI isn&apos;t a limitation. It&apos;s a competitive advantage. And it&apos;s the only way AI should serve people in crisis.

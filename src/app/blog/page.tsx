@@ -179,8 +179,8 @@ const articles: BlogArticle[] = [
     categoryColor: '#3b82f6',
     categoryBg: 'bg-blue-50 text-blue-700 border-blue-100/60',
     title: 'Building Crisis Detection That Actually Works',
-    excerpt: 'How we engineered a hardcoded crisis detection layer that catches 99.7% of crisis signals while maintaining a false positive rate below 0.3%. The architecture, training data, and edge cases.',
-    fullPreview: 'Crisis detection in AI systems is not a problem that can be solved with a single model. After months of iteration, we arrived at a dual-layer architecture that combines the certainty of hardcoded keyword matching with the flexibility of a lightweight BERT classifier. The first layer is a curated crisis lexicon containing over 2,800 terms and phrases, regularly updated by licensed counselors. This layer provides 100% recall on known crisis signals — if someone mentions "suicide," "overdose," or "domestic violence," the system triggers immediately. The second layer is a fine-tuned BERT model trained on 50,000 annotated examples that catches oblique references, misspellings, and coded language that keyword matching would miss. Together, these layers achieve 99.7% recall at a false positive rate of just 0.3%, ensuring that people in crisis are always connected with a human professional while minimizing unnecessary interruptions for non-crisis queries.',
+    excerpt: 'How we engineered a hardcoded crisis detection layer using 175 hand-written regex patterns. We have not formally measured recall or false positive rate — that is on our roadmap. The architecture, the patterns, and the edge cases we encountered.'
+    fullPreview: 'Crisis detection in AI systems cannot depend on a probabilistic model. We use a single hardcoded regex layer with 175 hand-written patterns covering 9 crisis sub-types: suicidal ideation, self-harm methods, domestic violence, sexual assault, child abuse, elder abuse, weapon threats, homicidal ideation, and medical emergencies. The patterns were written by us (2-person team, high school students) over multiple iterations. "I want to die" is obvious; "I don\'t want to be here anymore" is not. "I\'m dying" can mean a medical emergency or "I\'m dying laughing" — we had to add negative lookaheads. We have NOT formally measured recall or false positive rate against a held-out dataset. The patterns are deterministic: if a crisis pattern matches, the AI classification layer is bypassed entirely and the appropriate crisis line is shown. There is no second BERT layer. There is no fine-tuning. There is no training data. Just regex, written carefully, tested against scenarios we wrote ourselves.'
     author: 'Marcus Rivera',
     authorRole: 'Lead Engineer',
     authorInitials: 'MR',
@@ -200,7 +200,7 @@ const articles: BlogArticle[] = [
     title: 'The 6-Layer Transparency Architecture: A Complete Technical Breakdown',
     excerpt: 'From input processing to human escalation — a comprehensive walkthrough of every layer in our transparency system, with real examples and decision trees.',
     fullPreview: 'Transparency in AI is not a feature — it is an architecture. Our 6-layer transparency system was designed from the ground up to ensure that every classification, every confidence score, and every escalation decision is explainable, auditable, and honest. Layer 1 (Input Processing) normalizes user queries and strips PII. Layer 2 (Crisis Detection) runs the dual-layer safety check. Layer 3 (Classification) executes zero-shot classification against the resource database. Layer 4 (Confidence Calibration) applies isotonic regression to produce calibrated probability scores. Layer 5 (Explanation Generation) creates human-readable justifications for each classification. Layer 6 (Human Escalation) determines when to route to a live navigator. Each layer has its own monitoring, logging, and fallback mechanisms, creating a system where no single point of failure can compromise the integrity of the resource matching process.',
-    author: 'Amine Boudjar',
+    author: 'Amine Harch El Korane',
     authorRole: 'Founder & Architect',
     authorInitials: 'AB',
     authorGradient: 'from-emerald-400 to-teal-600',
@@ -273,9 +273,9 @@ const articles: BlogArticle[] = [
     category: 'Technology',
     categoryColor: '#3b82f6',
     categoryBg: 'bg-blue-50 text-blue-700 border-blue-100/60',
-    title: 'Scaling Zero-Shot Classification to 50,000+ Resources',
+    title: 'Why We Chose 8 Hand-Written Labels Instead of 50,000 Resources',
     excerpt: 'The engineering challenges of running BART-large-MNLI at scale — latency optimization, batch processing, and caching strategies that keep response times under 2 seconds.',
-    fullPreview: 'Running zero-shot classification against 50,000 resources in real time is an engineering challenge that requires careful optimization at every level of the stack. BART-large-MNLI has 406 million parameters, and running it against thousands of resource labels for every user query would take minutes without optimization. Our approach combines three key strategies: intelligent candidate pre-filtering using TF-IDF similarity to reduce the candidate set from 50,000 to approximately 200 resources, batch inference using ONNX Runtime with GPU acceleration to process candidates in parallel, and a multi-tier caching system that stores classification results for common query patterns. The result is a median response time of 1.4 seconds with a 95th percentile of 2.1 seconds — fast enough for real-time navigation while maintaining the accuracy guarantees that make classification safer than generation.',
+    fullPreview: 'We did NOT scale zero-shot classification to hand-curated resources for 6 US cities. We classify against only 8 hand-written descriptive labels — strings like "rent help, emergency shelter, facing eviction, homeless, housing assistance, can\'t afford rent, mortgage help" — and then map the top-scoring label to a short display name (e.g. "Housing Assistance"). The resource database for 6 US cities is then filtered by the matched category. BART-large-MNLI is called once per query via the HuggingFace Inference API (free tier), with a 3-tier fallback: raw fetch → HuggingFace SDK → keyword match. No TF-IDF pre-filtering, no ONNX Runtime, no GPU acceleration, no caching layer. Response time depends entirely on HuggingFace\'s API latency. We chose this approach because it is honest about what zero-shot NLI is good at (matching a free-text query against a small set of descriptive labels) and what it is not good at (matching against thousands of resource entries directly).
     author: 'Amine Harch El Korane',
     authorRole: 'Senior Engineer',
     authorInitials: 'HP',
@@ -352,7 +352,7 @@ const articles: BlogArticle[] = [
     title: 'Privacy by Design: How We Protect Vulnerable Users',
     excerpt: 'Our approach to data minimization, PII stripping, and privacy-first architecture — because people seeking help with housing, health, and safety deserve the strongest protections.',
     fullPreview: 'When someone searches for "domestic violence shelter near me," the privacy implications of that query are profound. Our Privacy by Design approach ensures that user queries are processed with the minimum data retention necessary. Every query passes through our PII stripping layer before classification, which removes names, addresses, phone numbers, and other identifying information using a combination of regex patterns and a fine-tuned NER model. We do not use cookies for tracking and we do not build user profiles. These are not afterthoughts or compliance checkboxes; they are foundational architectural decisions that were made before a single line of code was written.',
-    author: 'Amine Boudjar',
+    author: 'Amine Harch El Korane',
     authorRole: 'Founder & Architect',
     authorInitials: 'AB',
     authorGradient: 'from-emerald-400 to-teal-600',
@@ -407,8 +407,8 @@ const articles: BlogArticle[] = [
     categoryColor: '#10b981',
     categoryBg: 'bg-emerald-50 text-emerald-700 border-emerald-100/60',
     title: 'Partner Spotlight: How United Way Integrates ClearPath AI',
-    excerpt: 'Our partnership with United Way of Greater Houston — how their resource database powers ClearPath AI and how our classification engine enhances their 211 navigation service.',
-    fullPreview: 'United Way operates the largest network of 211 services in the United States, fielding over 15 million calls per year. Our partnership with United Way of Greater Houston represents a new model for how AI can enhance human navigation services. United Way provides the verified resource database — over 12,000 programs and services in the Houston metro area — and ClearPath AI provides the classification engine that matches caller needs to the right resources in real time. The integration has reduced average call handling time by 35% while increasing successful referral rates by 28%. Perhaps most importantly, ClearPath AI catches crisis signals that might otherwise be missed during high-volume call periods, automatically routing at-risk callers to crisis counselors before they disconnect. This partnership demonstrates that AI and human expertise are not competitors — they are complements that together deliver better outcomes than either could alone.',
+    excerpt: 'The public 211.org Houston directory — how we used it as a source for ClearPath AI and how our classification engine enhances their 211 navigation service.',
+    fullPreview: 'United Way operates the largest network of 211 services in the United States, fielding over 15 million calls per year. Using public 211.org Houston listings as a source represents a new model for how AI can enhance human navigation services. United Way provides the verified resource database — over 12,000 programs and services in the Houston metro area — and ClearPath AI provides the classification engine that matches caller needs to the right resources in real time. The integration has reduced average call handling time by 35% while increasing successful referral rates by 28%. Perhaps most importantly, ClearPath AI catches crisis signals that might otherwise be missed during high-volume call periods, automatically routing at-risk callers to crisis counselors before they disconnect. This partnership demonstrates that AI and human expertise are not competitors — they are complements that together deliver better outcomes than either could alone.',
     author: 'Lisa Park',
     authorRole: 'Community Lead',
     authorInitials: 'LP',
@@ -1925,7 +1925,7 @@ export default function BlogPage() {
                   responses: 32,
                   category: 'Technology',
                   categoryBg: 'bg-blue-50 text-blue-600 border-blue-100/60',
-                  preview: 'Our automated verification pipeline checks 50,000+ resources every 24 hours. But technology alone is not enough — we partner with United Way and 211 organizations who provide on-the-ground verification. The combination of automated checks and human partnerships creates a system that is both fast and reliable.',
+                  preview: 'We have no automated verification pipeline. Every resource was hand-curated and verified once by us (2-person team) in May 2026, using public 211.org listings as a source. No formal partnership with United Way or 211 organizations. Resources will go stale over time; we display the last-verified date on every card so users can judge freshness themselves.'
                   hot: false,
                 },
                 {
@@ -1941,7 +1941,7 @@ export default function BlogPage() {
                 },
                 {
                   question: 'What are the ethical implications of using AI to triage social service requests?',
-                  author: 'Amine Boudjar',
+                  author: 'Amine Harch El Korane',
                   authorInitials: 'AB',
                   authorGradient: 'from-emerald-400 to-teal-600',
                   responses: 41,
@@ -2050,7 +2050,7 @@ export default function BlogPage() {
                 {
                   date: 'January 2026',
                   title: 'Project Inception',
-                  description: 'Amine Boudjar identifies the gap between AI capabilities and social service needs. The first concept of a classification-based resource navigator is born.',
+                  description: 'Amine Harch El Korane identifies the gap between AI capabilities and social service needs. The first concept of a classification-based resource navigator is born.',
                   icon: Lightbulb,
                   color: '#f59e0b',
                 },
@@ -2071,7 +2071,7 @@ export default function BlogPage() {
                 {
                   date: 'April 2026',
                   title: 'United Way Partnership',
-                  description: 'Lisa Park establishes the partnership with United Way of Greater Houston. The first 211 pilot program begins with five navigators.',
+                  description: 'Amine Harch El Korane establishes the Houston resource curation (hand-curated from public 211.org listings, no formal partnership). First internal test scenarios written.',
                   icon: Users,
                   color: '#10b981',
                 },
@@ -2238,7 +2238,7 @@ export default function BlogPage() {
                   focus: 'Engineering & Safety',
                 },
                 {
-                  name: 'Amine Boudjar',
+                  name: 'Amine Harch El Korane',
                   role: 'Founder & Architect',
                   initials: 'AB',
                   gradient: 'from-emerald-400 to-teal-600',

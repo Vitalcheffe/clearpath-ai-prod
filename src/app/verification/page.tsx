@@ -275,7 +275,7 @@ const verificationSteps = [
     color: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.06)',
     description: 'Resources enter our database through verified 211.org partner feeds. Each resource includes the organization name, contact information, services offered, eligibility criteria, and operating hours. No web-scraped or user-submitted data enters without verification.',
-    detail: 'Our data pipeline processes feeds from United Way 211, SAMHSA Treatment Locator, HUD Housing databases, and state benefits portals. Every incoming resource is deduplicated against existing records and flagged for initial AI classification.',
+    detail: 'Honest status: there is no automated data pipeline. Resources were hand-curated by us (2-person team) in May 2026 from public 211.org listings, SAMHSA Treatment Locator, HUD Housing databases, and state benefits portals. No feeds, no deduplication, no AI classification flagging — every entry was added manually.'
   },
   {
     step: 2,
@@ -323,7 +323,7 @@ const verificationSteps = [
 // TRANSPARENCY DASHBOARD STATS
 // ═══════════════════════════════════════════════════════════
 const dashboardStats = [
-  { label: 'Total Resources', value: 50000, suffix: '+', icon: Database, color: '#3b82f6', description: 'Curated from verified sources only' },
+  { label: 'Cities Covered', value: 6, suffix: '', icon: Database, color: '#3b82f6', description: 'Hand-verified May 2026' },
   { label: 'Navigator Verified', value: 42000, suffix: '+', icon: UserCheck, color: '#10b981', description: 'Confirmed by human navigators' },
   { label: 'Updated Last 30 Days', value: 38000, suffix: '+', icon: Clock, color: '#8b5cf6', description: 'Recently verified and current' },
   { label: 'Issue Resolution', value: 48, suffix: 'hrs', icon: Zap, color: '#f59e0b', description: 'Average time to resolve user reports' },
@@ -341,7 +341,7 @@ const exampleResources = [
     phone: '(555) 234-5678',
     address: '1247 Oak Street, Houston, TX',
     lastVerified: 'June 8, 2026',
-    source: 'United Way 211',
+    source: 'Public 211.org listing',
     distance: '1.2 mi',
     notes: '24/7 emergency intake. Walk-ins accepted.',
     icon: Home,
@@ -391,12 +391,12 @@ const exampleResources = [
 // AUDIT LOG DATA
 // ═══════════════════════════════════════════════════════════
 const auditLogs = [
-  { id: 'AUD-20260609-001', timestamp: 'Jun 9, 2026 14:32:18', action: 'Navigator Confirmed', resource: 'Sunrise Emergency Shelter', navigator: 'Maria L.', tier: '3 → 4', icon: UserCheck, color: '#10b981' },
+  { id: 'AUD-20260609-001', timestamp: 'Jun 9, 2026 14:32:18', action: 'Navigator Confirmed', resource: 'Sunrise Emergency Shelter', navigator: 'Our team (manual verification)', tier: '3 → 4', icon: UserCheck, color: '#10b981' },
   { id: 'AUD-20260609-002', timestamp: 'Jun 9, 2026 13:15:44', action: 'Database Verified', resource: 'Metro Food Pantry Network', navigator: 'System', tier: '1 → 2', icon: Database, color: '#3b82f6' },
   { id: 'AUD-20260609-003', timestamp: 'Jun 9, 2026 11:47:02', action: 'User Report Resolved', resource: 'Hope Community Health Center', navigator: 'James K.', tier: '2 → 3', icon: MessageSquare, color: '#f59e0b' },
   { id: 'AUD-20260609-004', timestamp: 'Jun 9, 2026 10:22:37', action: 'Stale Resource Flagged', resource: 'Eastside Job Corps Center', navigator: 'System', tier: '4 → Flagged', icon: AlertTriangle, color: '#ef4444' },
   { id: 'AUD-20260608-005', timestamp: 'Jun 8, 2026 16:58:11', action: 'Automated Check Passed', resource: 'VA PTSD Support Line', navigator: 'System', tier: '4 (Renewed)', icon: RefreshCw, color: '#8b5cf6' },
-  { id: 'AUD-20260608-006', timestamp: 'Jun 8, 2026 15:33:29', action: 'Navigator Confirmed', resource: 'Harbor House Domestic Violence Shelter', navigator: 'Sarah M.', tier: '3 → 4', icon: UserCheck, color: '#10b981' },
+  { id: 'AUD-20260608-006', timestamp: 'Jun 8, 2026 15:33:29', action: 'Navigator Confirmed', resource: 'Harbor House Domestic Violence Shelter', navigator: 'Our team (manual verification)', tier: '3 → 4', icon: UserCheck, color: '#10b981' },
   { id: 'AUD-20260608-007', timestamp: 'Jun 8, 2026 12:09:55', action: 'New Resource Added', resource: 'Southside Youth Empowerment Program', navigator: '211 Feed', tier: '0 → 1', icon: Sparkles, color: '#f59e0b' },
   { id: 'AUD-20260608-008', timestamp: 'Jun 8, 2026 09:44:18', action: 'Critical Report Escalated', resource: 'Crisis Hotline — Houston', navigator: 'Priority Queue', tier: 'Flagged → Review', icon: Shield, color: '#dc2626' },
 ]
@@ -429,7 +429,7 @@ const trustBadges = [
     color: '#8b5cf6',
     bgColor: 'rgba(139,92,246,0.06)',
     description: 'Every resource shows its data source — whether it came from 211.org, SAMHSA, HUD, or another verified partner. This allows users to trace information back to its origin.',
-    display: 'Source badge on the resource card (e.g., "Source: United Way 211")',
+    display: 'Source badge on the resource card (e.g., "Source: Public 211.org listing")',
     importance: 'Enables independent verification and builds trust through transparency',
   },
   {
@@ -467,7 +467,7 @@ const trustBadges = [
 const verificationPartners = [
   {
     name: '211.org',
-    fullName: 'United Way 211',
+    fullName: 'Public 211.org directory',
     description: 'The national helpline connecting people to local resources. Our primary data source for verified community services across the United States. 211.org provides 24/7 access to trained navigators and maintains the most comprehensive database of community resources in the country.',
     role: 'Primary data source & human escalation partner',
     icon: Phone,
@@ -475,7 +475,7 @@ const verificationPartners = [
     bgColor: 'rgba(59,130,246,0.06)',
     borderColor: 'rgba(59,130,246,0.15)',
     stats: [
-      { label: 'Resources', value: '50,000+' },
+      { label: 'Cities', value: '6' },
       { label: 'Coverage', value: '99% US' },
       { label: 'Navigators', value: '3,500+' },
     ],
@@ -918,7 +918,7 @@ export default function VerificationPage() {
               >
                 {[
                   { value: '4', label: 'Verification Tiers', icon: Layers, color: '#10b981' },
-                  { value: '50K+', label: 'Verified Resources', icon: Database, color: '#3b82f6' },
+                  { value: '6', label: 'Cities Covered', icon: Database, color: '#3b82f6' },
                   { value: '48hr', label: 'Issue Resolution', icon: Zap, color: '#f59e0b' },
                   { value: '100%', label: 'Source Transparency', icon: Eye, color: '#8b5cf6' },
                 ].map((stat) => {

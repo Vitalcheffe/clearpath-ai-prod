@@ -227,7 +227,7 @@ export default function AboutPage() {
               >
                 {[
                   { value: '6', suffix: '', label: 'Transparency Layers', icon: Layers, color: '#10b981' },
-                  { value: '50K+', suffix: '+', label: 'Resources Classified', icon: BarChart3, color: '#3b82f6' },
+                  { value: '6', suffix: '', label: 'Cities Hand-Verified', icon: BarChart3, color: '#3b82f6' },
                   { value: '<2s', suffix: 's', label: 'Avg. Response Time', icon: Timer, color: '#6366f1' },
                   { value: '100%', suffix: '%', label: 'Confidence Visible', icon: Eye, color: '#f59e0b' },
                 ].map((stat) => {
@@ -820,7 +820,7 @@ export default function AboutPage() {
               variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
               className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
             >
-              <StatCard icon={BarChart3} value="50K+" suffix="K+" label="Resources classified" color="#3b82f6" target={50} />
+              <StatCard icon={BarChart3} value="6" suffix="" label="Cities hand-verified" color="#3b82f6" target={6} />
               <StatCard icon={Layers} value="6" suffix="" label="Transparency layers" color="#10b981" target={6} />
               <StatCard icon={Timer} value="<2s" suffix="s" label="Average response" color="#6366f1" target={2} />
               <StatCard icon={HeadphonesIcon} value="24/7" suffix="/7" label="Human support" color="#f59e0b" target={24} />
@@ -1199,7 +1199,7 @@ export default function AboutPage() {
                   name: 'Maria Gonzalez',
                   initials: 'MG',
                   role: 'Community Impact Advisor',
-                  org: 'United Way 211 Network',
+                  org: 'No organization — designed scenario, not a real partner',
                   bio: 'Former 211 navigator with 15 years of experience connecting people with community resources. Ensures ClearPath AI serves real community needs, not just technical benchmarks.',
                   gradient: 'from-rose-500 to-pink-600',
                 },
@@ -1459,7 +1459,7 @@ export default function AboutPage() {
                 {[
                   { metric: '1.8s', label: 'Avg. Classification Time', color: '#3b82f6' },
                   { metric: '94.2%', label: 'Classification Accuracy', color: '#10b981' },
-                  { metric: '99.7%', label: 'Crisis Detection Recall', color: '#ef4444' },
+                  { metric: '175', label: 'Crisis Regex Patterns', color: '#ef4444' },
                   { metric: '< 50ms', label: 'Crisis Detection Latency', color: '#f59e0b' },
                 ].map((item) => (
                   <div key={item.label} className="text-center p-4 rounded-xl" style={{ backgroundColor: `${item.color}05`, border: `1px solid ${item.color}10` }}>
@@ -1485,7 +1485,7 @@ export default function AboutPage() {
                 { name: 'TypeScript 5', desc: 'Type-safe development', icon: Binary, color: '#3178c6' },
                 { name: 'Tailwind CSS v4', desc: 'Utility-first styling', icon: Wind, color: '#06b6d4' },
                 { name: 'Framer Motion', desc: 'Animations & transitions', icon: Sparkles, color: '#a855f7' },
-                { name: 'United Way 211', desc: 'Verified resource data', icon: Database, color: '#10b981' },
+                { name: 'Public 211.org', desc: 'Hand-curated from public listings', icon: Database, color: '#10b981' },
                 { name: 'Hugging Face API', desc: 'Model inference', icon: Server, color: '#f59e0b' },
                 { name: 'Prisma ORM', desc: 'Type-safe data access', icon: Layers, color: '#6366f1' },
               ].map((tech) => {

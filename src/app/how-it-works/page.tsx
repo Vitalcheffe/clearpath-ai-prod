@@ -249,7 +249,7 @@ const flowSteps = [
     step: 4,
     title: 'Confidence-Gated Clarification',
     subtitle: 'Ask, don\'t guess',
-    description: 'If the top confidence score falls below 70%, the system does not guess — it asks a targeted clarification question. This active learning approach improves accuracy while respecting the user. Below 50%, the system proactively suggests human escalation. The threshold is calibrated based on real validation data: at 70%, zero-shot classification accuracy is 87%+; below it, accuracy degrades meaningfully. We would rather say "I\'m not sure, can you tell me more?" than give wrong information when someone\'s safety is at stake.',
+    description: 'If the top confidence score falls below 70%, the system does not guess — it asks a targeted clarification question. This active learning approach improves accuracy while respecting the user. Below 50%, the system proactively suggests human escalation. The threshold is heuristic, based on our own informal testing — we have not built a formal calibration dataset yet. We would rather say "I\'m not sure, can you tell me more?" than give wrong information when someone\'s safety is at stake.',
     icon: HelpCircle,
     color: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',
@@ -479,12 +479,12 @@ const techStack = [
   },
   {
     name: '211.org Resource Database',
-    description: 'Our resource data comes from the United Way 211 system — the largest database of community resources in the United States, covering over 50,000 verified programs and services across all 50 states. Every resource in our database has been verified by trained 211 navigators, includes contact information, eligibility requirements, and last-verified dates. We do not scrape the web for resources — we curate from verified partners only, which eliminates the risk of outdated or fraudulent listings.',
+    description: 'Our resource data was hand-curated from publicly available directories — 211.org public listings, Benefits.gov, HUD housing databases, and SAMHSA treatment locators. No formal partnership with United Way or 211. We cover 6 US cities: Houston, New York, Los Angeles, Chicago, Dallas, Miami. Every resource entry was manually researched and verified by us (2-person team) in May 2026. We display the last-verified date on every resource card so users can judge freshness themselves.',
     icon: Database,
     color: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
     details: [
-      '50,000+ verified community resources across all 50 states',
+      '6 US cities, hand-curated resources, verified May 2026',
       'Monthly verification cycle — resources older than 30 days get "Call to confirm" notice',
       'Source attribution — every resource shows its provenance and last-verified date',
       'Curated, not scraped — only verified partners like 211.org, government databases, and vetted nonprofits',
@@ -511,7 +511,7 @@ const safetyGuardrails = [
   {
     title: 'Confidence Thresholds',
     subtitle: 'Three-tier safety net',
-    description: 'Every classification result passes through a three-tier confidence gate. Above 70%, results are displayed with full transparency. Between 50-70%, clarification questions are asked to resolve ambiguity. Below 50%, human escalation becomes the primary recommendation. These thresholds are not arbitrary — they are calibrated against real validation data from the 211 database. The 70% threshold corresponds to 87%+ classification accuracy; below it, accuracy degrades meaningfully. We would rather ask than guess.',
+    description: 'Every classification result passes through a three-tier confidence gate. Above 70%, results are displayed with full transparency. Between 50-70%, clarification questions are asked to resolve ambiguity. Below 50%, human escalation becomes the primary recommendation. These thresholds are heuristic, not derived from a held-out evaluation dataset. We chose 70% based on manual testing against scenarios we wrote — above 70%, the top match was usually correct in our informal tests. We have not yet built a formal calibration dataset. We would rather ask than guess.',
     icon: Gauge,
     color: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',

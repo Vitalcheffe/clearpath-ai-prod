@@ -10,18 +10,30 @@ A multi-city community resource navigator that shows calibrated confidence inste
 
 ## The Problem
 
-73% of community resource searches lead to dead ends. Not because the resources don't exist — because the systems connecting people to them are broken. Search engines give confident answers. Directories give long lists. Neither asks what you actually need. Neither tells you when it's not sure.
+Keyword search doesn't work for people in crisis. "My husband hurts me" and "I want to end it all" both contain the word "help" but need totally different resources. When someone finally reaches out for help and gets sent to the wrong place, they don't try again. That gap between the right resource and the wrong one can be fatal. Search engines give confident answers; directories give long lists; neither asks what you actually need, and neither tells you when it isn't sure.
 
 ## The Solution
 
 ClearPath AI is a 6-layer community resource navigator:
 
 1. **Free-text input** → User describes their situation in their own words
-2. **Crisis detection** → Hardcoded keyword check, AI-proof, runs first
-3. **Multi-label classification** → Zero-shot NLP (BART-large-MNLI) with calibrated confidence scores
-4. **Clarification questions** → When confidence < 70%, ask don't guess
-5. **Transparent display** → Why + What Else + How Confident for every result
-6. **Human escalation** → 211 navigator connection when AI can't help
+2. **Crisis detection** → Hardcoded regex layer (175 patterns, 9 crisis sub-types), AI-proof, runs first
+3. **Vague input interception** → Refuses to call BART on "hi", "help", "test" — zero-shot models produce false confidence on meaningless input
+4. **Multi-label classification** → Zero-shot NLP (BART-large-MNLI) with **raw** (not calibrated) confidence scores
+5. **Confidence-gated clarification** → When confidence < 70%, ask don't guess; multi-label threshold ≥10% surfaces up to 5 categories
+6. **Human escalation** → 211 navigator connection when AI can't help. We never auto-dial.
+
+## Why these 8 categories?
+
+The 8 BART classification labels were derived from the 211.org directory's top-level taxonomy, cross-referenced with the most frequent request types reported in publicly available 211 impact reports. The labels are descriptive strings, not single words — for example, the housing label is `"rent help, emergency shelter, facing eviction, homeless, housing assistance, can't afford rent, mortgage help"`. BART scores the input against the full semantic of each label, then the label is mapped back to a short display name like `"Housing Assistance"`.
+
+**Edge cases where a user's situation spans multiple categories** are handled via multi-label classification: any category scoring ≥10% is surfaced alongside the top match, up to 5 categories. "I lost my job and can't pay rent. My kids need food." is not one problem — it shows Employment + Housing + Food simultaneously, so no need is silently dropped.
+
+Crisis Support is **NOT** a BART category — it is handled by the separate hardcoded regex layer that runs before BART is invoked, because crisis routing cannot depend on a probabilistic model.
+
+## Why BART-large-MNLI (and not RoBERTa-MNLI or DeBERTa-v3-MNLI)?
+
+BART-large-MNLI handles longer premise-hypothesis pairs (1k tokens vs 512 for RoBERTa), which matters when labels are descriptive phrases rather than single words. DeBERTa-v3-MNLI has higher accuracy on the GLUE benchmark but slower inference on HuggingFace free tier. We chose BART for the balance of context length, inference speed, and reliability under load. The 3-tier fallback (raw fetch → HuggingFace SDK → keyword match) ensures the tool still works when the model is unavailable.
 
 ## Multi-City Support
 
@@ -79,8 +91,10 @@ npm run dev
 
 ## Team
 
-- **Amine Harch El Korane** (Morocco) — Project Lead, AI Pipeline, Pitch
-- **Ghali El Alj** (Morocco) — Full-Stack Engineer, DevOps
+- **Amine Harch El Korane** (Morocco, high school) — Co-Founder, AI Pipeline Lead, Pitch (qualifier score: 100/100, rank #1 of 320)
+- **Ghali El Alj** (Morocco, high school) — Co-Founder, Full-Stack Engineer, DevOps
+
+No advisory board. No external partners. No formal data-sharing agreements. No publications submitted. The two of us built everything you see here in June 2026.
 
 ## Documentation
 

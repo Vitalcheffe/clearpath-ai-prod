@@ -457,28 +457,28 @@ const regulations = [
     fullName: 'General Data Protection Regulation',
     status: 'Aligned',
     color: '#3b82f6',
-    description: 'We design our systems with privacy-first principles aligned with GDPR requirements. Guest sessions process no personal data; authenticated users can access, export, and delete their data. We use the Hugging Face Inference API as a data processor. Formal compliance certification is pending.',
+    description: 'We design our systems with privacy-first principles aligned with GDPR requirements. Guest sessions process no personal data; authenticated users can access, export, and delete their data. We use the Hugging Face Inference API as a data processor. No formal compliance certification — this is a hackathon build.',
   },
   {
     name: 'CCPA',
     fullName: 'California Consumer Privacy Act',
     status: 'Aligned',
     color: '#10b981',
-    description: 'We design our systems aligned with CCPA best practices. No personal information sold or shared. No user profiles created for advertising. Right to know and right to delete available for account holders. Guest sessions retain no data. No "Do Not Sell" signal needed because we never sell data. Formal compliance certification is pending.',
+    description: 'We design our systems aligned with CCPA best practices. No personal information sold or shared. No user profiles created for advertising. Right to know and right to delete available for account holders. Guest sessions retain no data. No "Do Not Sell" signal needed because we never sell data. No formal compliance certification — this is a hackathon build.',
   },
   {
     name: 'HIPAA',
     fullName: 'Health Insurance Portability and Accountability Act',
     status: 'Aligned',
     color: '#8b5cf6',
-    description: 'No protected health information (PHI) is collected, stored, or transmitted. Crisis detection operates on keyword matching without recording health conditions. No medical advice is provided. System does not qualify as a covered entity or business associate under HIPAA. Formal compliance certification is pending.',
+    description: 'No protected health information (PHI) is collected, stored, or transmitted. There is no user account system. Crisis detection operates on regex pattern matching — the input text is not logged. No medical advice is provided. We do not claim HIPAA compliance — we are a hackathon build by two high school students. HIPAA does not apply because we collect no health information.'
   },
   {
     name: 'COPPA',
     fullName: "Children's Online Privacy Protection Act",
     status: 'Aligned',
     color: '#f59e0b',
-    description: 'We design our systems aligned with COPPA best practices. No personal information collected from children under 13 in guest mode. Account creation is optional. Guest sessions are in-memory only. Crisis detection works identically for all users, including minors seeking help. Formal compliance certification is pending.',
+    description: 'No personal information is collected from anyone — adult or minor. There is no account system. Guest sessions are stateless. Crisis detection works identically for all users. We do not claim formal COPPA compliance — we are a hackathon build. We simply collect no personal data from anyone.'
   },
 ]
 
@@ -500,7 +500,7 @@ export default function ResponsibleAIPage() {
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold bg-red-50/80 text-red-700 border border-red-100/60 backdrop-blur-sm">
               <Shield className="w-3.5 h-3.5" />
-              INFORMS Scoring: Responsible AI 15%
+              Honest status: no INFORMS submission
             </span>
           </motion.div>
 
@@ -2204,17 +2204,17 @@ export default function ResponsibleAIPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-3 shadow-md shadow-blue-500/20">
-                    <span className="text-[16px] font-bold text-white">AK</span>
+                    <span className="text-[16px] font-bold text-white">AH</span>
                   </div>
-                  <p className="text-[14px] font-bold text-gray-900">Alex Korane</p>
-                  <p className="text-[12px] text-gray-400 mt-0.5">Co-Founder & Engineer</p>
+                  <p className="text-[14px] font-bold text-gray-900">Amine Harch El Korane</p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">Co-Founder & AI Pipeline Lead</p>
                 </div>
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-md shadow-emerald-500/20">
-                    <span className="text-[16px] font-bold text-white">RV</span>
+                    <span className="text-[16px] font-bold text-white">GE</span>
                   </div>
-                  <p className="text-[14px] font-bold text-gray-900">Rohan Vaidya</p>
-                  <p className="text-[12px] text-gray-400 mt-0.5">Co-Founder & Engineer</p>
+                  <p className="text-[14px] font-bold text-gray-900">Ghali El Alj</p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">Co-Founder & Full-Stack Engineer</p>
                 </div>
               </div>
 

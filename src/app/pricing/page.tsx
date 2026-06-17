@@ -211,9 +211,9 @@ const faqs = [
       'We love hearing from our users! You can submit feature requests through the feedback button in the app, by emailing team@clearpath-ai.org, or through our community forum. Pro and Enterprise users get priority consideration for feature requests. We review all suggestions monthly and publish a public roadmap of planned features.',
   },
   {
-    question: 'Is ClearPath AI HIPAA compliant?',
+    question: 'Is ClearPath AI HIPAA compliant?'
     answer:
-      'ClearPath AI is designed with privacy principles aligned with HIPAA best practices. Formal compliance certification is pending. We do not store Protected Health Information (PHI) — user data is never persistently stored. We are working toward formal HIPAA BAA availability for Enterprise customers. Contact our sales team for the latest compliance status and timeline.',
+      'ClearPath AI does not collect Protected Health Information (PHI). There is no user account system, no persistent storage of queries, no health data. We do not claim privacy-first architecture (no PII stored) — it does not apply to a tool that collects no health information. There is no Enterprise tier and no sales team — this is a hackathon build by two high school students.'
   },
 ]
 
@@ -2051,7 +2051,7 @@ export default function PricingPage() {
               <nav className="space-y-3">
                 <Link href="/privacy" className="block text-[14px] text-gray-400 hover:text-white transition-colors">Privacy Policy</Link>
                 <Link href="/terms" className="block text-[14px] text-gray-400 hover:text-white transition-colors">Terms of Service</Link>
-                <span className="block text-[14px] text-gray-600 cursor-default">HIPAA <span className="text-[10px] text-gray-700 bg-gray-800 px-1.5 py-0.5 rounded-md ml-1">In Progress</span></span>
+                <span className="block text-[14px] text-gray-600 cursor-default">No PII stored</span>
               </nav>
             </div>
           </div>

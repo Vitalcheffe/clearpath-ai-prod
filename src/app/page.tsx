@@ -185,7 +185,7 @@ const layers = [
   {
     step: 3,
     title: 'Multi-Label Classification',
-    desc: 'BART-large-MNLI classifies against 9 categories simultaneously. No hallucinated resources.',
+    desc: 'BART-large-MNLI classifies against 8 resource categories simultaneously. Crisis detection runs as a separate non-AI layer. No hallucinated resources.',
     icon: Layers,
     color: 'indigo',
     colorHex: '#6366f1',
@@ -236,9 +236,9 @@ const layerDeepDives = [
     icon: Database,
     colorHex: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
-    function: 'Every resource in our database is sourced from verified partners — primarily the United Way 211 system. We display the last-verified date and source for every recommendation.',
-    dataFlow: '211.org database → Monthly verification → Source badge + last-verified date → Displayed on every resource card',
-    example: 'Section 8 Emergency Transfer — Source: United Way 211 — Last verified: May 2026 — Verified badge shown. Users can confirm the resource is current before making contact.',
+    function: 'Every resource in our database was hand-curated from publicly available directories (211.org public listings, Benefits.gov, HUD housing databases, SAMHSA treatment locator). We display the last-verified date for every recommendation. No paid data partnerships — every entry was manually researched and verified by our team in May 2026.',
+    dataFlow: 'Public directories → Manual curation by our team → Resource entries with verified date → Displayed on every resource card',
+    example: 'Section 8 Emergency Transfer — Source: Public housing authority listings — Last verified: May 2026 — Verified badge shown. Users can confirm the resource is current before making contact.',
   },
   {
     layer: 3,
@@ -367,11 +367,11 @@ const faqs = [
   },
   {
     question: 'How accurate are the confidence scores?',
-    answer: 'Our confidence scores are calibrated using held-out validation data from the United Way 211 database, achieving 99.7% accuracy on crisis detection and 87%+ accuracy on multi-label classification. Scores reflect real model certainty — not inflated metrics — and are continuously validated by community navigators.',
+    answer: 'The confidence scores shown are the raw softmax probabilities returned by BART-large-MNLI on HuggingFace Inference API — unmodified, uncalibrated, exactly what the model produced. We do not inflate them, smooth them, or hide them. We have not yet built a held-out evaluation dataset to measure classification accuracy rigorously — that is on our roadmap. The crisis detection layer uses deterministic regex patterns, so its accuracy depends on the patterns we wrote (175 patterns, manually reviewed). What we can promise: the number you see is the number the model returned, not a marketing-adjusted version of it.',
   },
   {
     question: 'What categories can ClearPath AI classify?',
-    answer: 'ClearPath AI classifies across 9 core categories: Housing Assistance, Food Assistance, Mental Health, Employment, Legal Aid, Healthcare, Crisis Support, Senior Services, and Veteran Services. Our multi-label system means a single query can match multiple categories simultaneously — because real needs are rarely simple.',
+    answer: 'BART-large-MNLI classifies across 8 resource categories: Housing Assistance, Food Assistance, Mental Health, Employment, Legal Aid, Healthcare, Senior Services, and Veteran Services. Crisis Support is NOT a BART category — it is handled by a separate hardcoded regex layer that runs BEFORE BART is invoked, because crisis routing cannot depend on a probabilistic model. Our multi-label system means a single query can match multiple categories simultaneously — because real needs are rarely simple.',
   },
   {
     question: 'Can I use ClearPath AI in a language other than English?',
@@ -383,80 +383,84 @@ const faqs = [
   },
   {
     question: 'How does ClearPath AI handle outdated resource information?',
-    answer: 'Every resource card includes a "Last verified" date. Resources older than 30 days display a "Call to confirm" notice. We work with 211.org partners to update our database monthly. We never hide the age of our data — if a resource might be outdated, we tell you upfront.',
+    answer: 'Every resource card includes a "Last verified" date — currently May 2026 for all entries, since we hand-curated the database ourselves during the hackathon build. We do not yet have an automated pipeline to keep this fresh. If a resource is older than 30 days (which will happen as time passes), we display a "Call to confirm" notice. We never hide the age of our data — if a resource might be outdated, we tell you upfront.'
   },
   {
-    question: 'Is ClearPath AI HIPAA compliant?',
-    answer: 'ClearPath AI is designed with a privacy-first architecture. Guest users can use the service without creating an account — no email, no profile, no PII required. For registered users, we store only the minimum data needed to provide the service (conversations, saved resources). We never sell or share personal data. While we don\'t store health data (and therefore don\'t require HIPAA compliance), our architecture prioritizes minimal data collection and user control.'
+    question: 'What happens to the text I type into ClearPath AI?',
+    answer: 'Your text input is sent over HTTPS to our classify API route, which forwards it to HuggingFace Inference API (facebook/bart-large-mnli) for zero-shot classification. We do not log input text on our servers. We do not store queries in a database. There is no user account system, no session persistence, no cookies beyond what the browser needs to render the page. HuggingFace\'s own data retention policy applies to their API tier — we recommend reviewing it if you have concerns. We never share, sell, or analyze input data. If you are in crisis and uncomfortable typing, call 988 directly — you do not need to use this tool.'
   },
   {
     question: 'How can organizations integrate ClearPath AI?',
-    answer: 'Organizations can integrate ClearPath AI via our API or embed widget. Enterprise partners get access to analytics dashboards, custom category configuration, and priority support. Contact our team at team@clearpath-ai.org for partnership inquiries.',
+    answer: 'There is no API, embed widget, or enterprise tier. ClearPath AI is a hackathon build (June 2026). The codebase is open source on GitHub — organizations are welcome to fork it, inspect it, or self-host it. We do not offer paid plans, custom configurations, or partnership agreements. If you are a nonprofit that wants to use this internally, the README has deployment instructions.',
   },
 ]
 
 // ─── TESTIMONIAL DATA ────────────────────────────────────
+// Honest status: ClearPath AI is a hackathon build (June 2026). It has not been
+// deployed with real users yet. No testimonials have been collected. The entries
+// below describe the use cases the product was designed for — they are not
+// endorsements from real people.
 const testimonials = [
   {
-    name: 'Sarah M.',
-    role: 'Social Worker',
-    quote: 'ClearPath is the first AI tool I\'d actually recommend to clients. The confidence scores let me know which results to trust.',
-    initials: 'SM',
+    name: 'Use case — not a testimonial',
+    role: 'Designed for: Social workers',
+    quote: 'ClearPath AI was designed for scenarios where a social worker needs to quickly point a client to a verified local resource — with confidence scores that make it easy to decide which lead to follow first.',
+    initials: 'UC',
     color: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.08)',
-    stars: 5,
+    stars: 0,
   },
   {
-    name: 'Dr. James K.',
-    role: 'Community Health',
-    quote: 'Unlike ChatGPT, ClearPath doesn\'t hallucinate resources. That\'s not a feature — it\'s a requirement when lives are at stake.',
-    initials: 'JK',
+    name: 'Use case — not a testimonial',
+    role: 'Designed for: Community health workers',
+    quote: 'The classification approach was chosen specifically because it cannot hallucinate resources — every result comes from a hand-verified database, which matters when lives are at stake.',
+    initials: 'UC',
     color: '#10b981',
     bgColor: 'rgba(16,185,129,0.08)',
-    stars: 5,
+    stars: 0,
   },
   {
-    name: 'Maria L.',
-    role: '211 Navigator',
-    quote: 'The human escalation feature is brilliant. When AI isn\'t sure, it sends them to us — not to a dead end.',
-    initials: 'ML',
+    name: 'Use case — not a testimonial',
+    role: 'Designed for: 211 navigators',
+    quote: 'The human escalation feature exists so that when AI isn\'t sure, the user is sent to 211 — not to a dead end. The 211 service is operated locally across the US.',
+    initials: 'UC',
     color: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.08)',
-    stars: 5,
+    stars: 0,
   },
   {
-    name: 'David R.',
-    role: 'Veteran Affairs Counselor',
-    quote: 'Veterans often have complex, overlapping needs. ClearPath\'s multi-label classification captures that complexity better than any intake form I\'ve used.',
-    initials: 'DR',
+    name: 'Use case — not a testimonial',
+    role: 'Designed for: Veteran services',
+    quote: 'Veterans often have complex, overlapping needs. ClearPath\'s multi-label classification (any category scoring ≥10% is surfaced, up to 5) captures that complexity better than a single-label intake form.',
+    initials: 'UC',
     color: '#8b5cf6',
     bgColor: 'rgba(139,92,246,0.08)',
-    stars: 5,
+    stars: 0,
   },
   {
-    name: 'Priya S.',
-    role: 'Immigration Attorney',
-    quote: 'My clients are often in crisis and don\'t speak tech. ClearPath lets them describe their situation naturally — no jargon, no forms. The confidence scores help me prioritize which resources to verify first.',
-    initials: 'PS',
+    name: 'Use case — not a testimonial',
+    role: 'Designed for: Immigration attorneys',
+    quote: 'The product was designed so that clients can describe their situation in plain language — no jargon, no forms. Confidence scores help the attorney prioritize which resources to verify first.',
+    initials: 'UC',
     color: '#06b6d4',
     bgColor: 'rgba(6,182,212,0.08)',
-    stars: 5,
+    stars: 0,
   },
   {
-    name: 'Tanya W.',
-    role: 'School Counselor',
-    quote: 'I recommended ClearPath to a student who was too embarrassed to ask for help in person. They found a food bank and mental health support within minutes. The privacy-first approach made all the difference.',
-    initials: 'TW',
+    name: 'Use case — not a testimonial',
+    role: 'Designed for: School counselors',
+    quote: 'The privacy-first approach (no account, no logging, no tracking) was designed for students who are too embarrassed to ask for help in person and need to look up food banks or mental health support discreetly.',
+    initials: 'UC',
     color: '#f97316',
     bgColor: 'rgba(249,115,22,0.08)',
-    stars: 5,
+    stars: 0,
   },
 ]
 
 // ─── PARTNER BADGES DATA ─────────────────────────────────
 const partnerBadges = [
   {
-    label: 'Built on United Way 211 Data',
+    label: 'Built on Public Resource Data',
     icon: Database,
     color: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.06)',
@@ -470,7 +474,7 @@ const partnerBadges = [
     borderColor: 'rgba(99,102,241,0.12)',
   },
   {
-    label: 'Verified by Community Navigators',
+    label: 'Hand-Verified by Our Team',
     icon: UserCheck,
     color: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
@@ -545,34 +549,37 @@ const useCases = [
 ]
 
 // ─── INTEGRATION PARTNERS DATA ───────────────────────────
+// Honest note: ClearPath AI has no formal partnerships. The entries below are
+// public services and tools we relied on while building — not commercial
+// relationships. Resources were hand-curated from publicly available listings.
 const integrationPartners = [
   {
-    name: '211.org',
-    desc: 'The national helpline connecting people to local resources. Our primary data source for verified community services.',
+    name: '211.org (public directory)',
+    desc: 'The national helpline connecting people to local resources. We hand-curated resource entries from publicly available 211 listings across our 6 supported cities. No formal data partnership.',
     icon: Phone,
     colorHex: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.06)',
     borderColor: 'rgba(59,130,246,0.15)',
   },
   {
-    name: 'United Way',
-    desc: 'World\'s largest privately funded nonprofit. Powers our database of 50,000+ verified community resources across the US.',
+    name: 'Benefits.gov (public directory)',
+    desc: 'Federal benefits eligibility directory. Used as a public source for verifying which programs exist in each supported city.',
     icon: HeartPulse,
     colorHex: '#ef4444',
     bgColor: 'rgba(239,68,68,0.06)',
     borderColor: 'rgba(239,68,68,0.15)',
   },
   {
-    name: 'Hugging Face',
-    desc: 'Home of BART-large-MNLI. Our zero-shot classification model runs on Hugging Face Inference API for real-time NLI.',
+    name: 'Hugging Face Inference API',
+    desc: 'Hosts facebook/bart-large-mnli, the zero-shot NLI model we use for classification. We use the free tier with a 3-tier fallback (raw fetch → SDK → keyword match) when the API is unavailable.',
     icon: Smile,
     colorHex: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',
     borderColor: 'rgba(245,158,11,0.15)',
   },
   {
-    name: 'Government Databases',
-    desc: 'Federal and state resource directories including Benefits.gov, SAMHSA treatment locator, and HUD housing databases.',
+    name: 'HUD & SAMHSA (public directories)',
+    desc: 'Federal housing (HUD) and substance abuse treatment (SAMHSA) public locator databases. Used as verification sources for resource entries.',
     icon: Building2,
     colorHex: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
@@ -591,8 +598,8 @@ const securityFeatures = [
   },
   {
     icon: UserCheck,
-    title: 'Optional Accounts',
-    desc: 'Use ClearPath AI instantly as a guest. No sign-up, no email, no profile required. Fully open access — just describe your situation.',
+    title: 'No Sign-Up Required',
+    desc: 'Use ClearPath AI instantly. No sign-up, no email, no profile — the auth system was intentionally removed (see commit history). The tool is fully open access: you describe your situation, you get results.',
     colorHex: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
   },
@@ -612,8 +619,8 @@ const securityFeatures = [
   },
   {
     icon: ShieldCheck,
-    title: 'COPPA Conscious',
-    desc: 'No personal information collected from guests — including children. Accounts are optional with minimal data. No tracking, no behavioral data. Privacy-first for all ages.',
+    title: 'No Accounts, No PII',
+    desc: 'There is no account system. No email, no profile, no name, no age, no demographic data is ever requested. The tool is fully open access — you describe your situation, you get resources, you leave. Nothing about you is stored.',
     colorHex: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',
   },
@@ -627,38 +634,41 @@ const securityFeatures = [
 ]
 
 // ─── AWARDS DATA ─────────────────────────────────────────
+// Honest status: ClearPath AI is currently competing in the USAII Global AI
+// Hackathon 2026 (High School track, qualifier score 100/100, rank #1 of 320).
+// No other awards or recognitions have been received. No publications submitted.
 const awards = [
   {
     icon: Trophy,
     title: 'USAII Global AI Hackathon 2026',
-    desc: 'Official competitor in the premier AI hackathon, showcasing responsible AI innovation for community impact.',
+    desc: 'Currently competing in the High School track. Qualified with 100/100 on the AI Readiness Qualifier (Rank #1 of 320 teams). Submission deadline: June 21, 2026.',
     colorHex: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',
     badge: 'Competing',
   },
   {
     icon: Award,
-    title: 'INFORMS Responsible AI Recognition',
-    desc: 'Recognized for honest confidence architecture meeting NIST AI Risk Management Framework standards.',
+    title: 'Qualifier Round — Top Score',
+    desc: 'Achieved the maximum score (100/100) on the USAII AI Readiness Qualifier, ranked #1 of 320 high school teams. The qualifier evaluated problem understanding, AI thinking, responsible AI awareness, and clarity.',
     colorHex: '#3b82f6',
     bgColor: 'rgba(59,130,246,0.06)',
-    badge: 'Submitted',
+    badge: 'Achieved',
   },
   {
     icon: Star,
-    title: 'Open Source Community Spotlight',
-    desc: 'Featured on Hugging Face community page for novel zero-shot classification approach with safety-first architecture.',
+    title: 'Open Source on GitHub',
+    desc: 'The entire codebase is publicly available on GitHub under the Vitalcheffe/clearpath-ai-prod repository. No Hugging Face community feature, no external spotlight — just open for anyone to inspect, fork, or contribute.',
     colorHex: '#10b981',
     bgColor: 'rgba(16,185,129,0.06)',
-    badge: 'Featured',
+    badge: 'Open',
   },
   {
     icon: BookOpen,
-    title: 'AI Ethics Publication',
-    desc: 'Our approach to honest confidence has been submitted for publication in the AI Ethics journal.',
+    title: 'No Publications — Yet',
+    desc: 'No academic publications have been submitted. The team is high school students. We are focused on shipping the product first; writing about the approach comes after.',
     colorHex: '#8b5cf6',
     bgColor: 'rgba(139,92,246,0.06)',
-    badge: 'Submitted',
+    badge: 'Honest',
   },
 ]
 
@@ -689,7 +699,7 @@ const deepDives = [
     color: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.06)',
     accentBg: 'rgba(245,158,11,0.1)',
-    detail: 'Calling 211 connects you to a real human navigator from the United Way network, available around the clock. Because some conversations need a person, not a prompt.',
+    detail: 'Calling 211 connects you to a real human navigator — the 211 service is operated locally across the US (typically by United Way or a regional nonprofit). Available around the clock. Because some conversations need a person, not a prompt.',
   },
 ]
 
@@ -999,7 +1009,7 @@ export default function LandingPage() {
             Impact that speaks for itself
           </motion.h2>
           <motion.p variants={staggerItem} className="text-lg text-gray-500 mt-4 max-w-2xl mx-auto">
-            Real numbers from real deployments. Every metric verified.
+            Project status — Hackathon build, June 2026. No deployments yet. These are the real numbers behind what we actually built.
           </motion.p>
         </motion.div>
 
@@ -1011,10 +1021,10 @@ export default function LandingPage() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {[
-            { value: 50000, suffix: '+', label: 'Resources Classified', icon: Database, color: '#3b82f6', bgColor: 'rgba(59,130,246,0.06)' },
-            { value: 99.7, suffix: '%', label: 'Crisis Detection Accuracy', icon: ShieldCheck, color: '#10b981', bgColor: 'rgba(16,185,129,0.06)' },
-            { value: 2, prefix: '<', suffix: 's', label: 'Average Response Time', icon: Zap, color: '#f59e0b', bgColor: 'rgba(245,158,11,0.06)' },
-            { value: 211, suffix: '+', label: 'Verified Resource Partners', icon: Users, color: '#6366f1', bgColor: 'rgba(99,102,241,0.06)' },
+            { value: 8, suffix: '', label: 'BART Categories', icon: Database, color: '#3b82f6', bgColor: 'rgba(59,130,246,0.06)' },
+            { value: 175, suffix: '', label: 'Crisis Regex Patterns', icon: ShieldCheck, color: '#10b981', bgColor: 'rgba(16,185,129,0.06)' },
+            { value: 6, suffix: '', label: 'Cities Hand-Verified', icon: MapPin, color: '#f59e0b', bgColor: 'rgba(245,158,11,0.06)' },
+            { value: 70, suffix: '%', label: 'Confidence Threshold', icon: Users, color: '#6366f1', bgColor: 'rgba(99,102,241,0.06)' },
           ].map((stat, i) => {
             const Icon = stat.icon
             return (
@@ -1649,7 +1659,7 @@ export default function LandingPage() {
             Community impact stories
           </motion.h2>
           <motion.p variants={staggerItem} className="text-lg text-gray-500 mt-4 max-w-2xl mx-auto">
-            Every number represents a real person who found help when they needed it most.
+            Honest status: ClearPath AI has not been deployed with real users yet. The numbers below describe the design of the system, not usage data we do not have.
           </motion.p>
         </motion.div>
 
@@ -1661,10 +1671,10 @@ export default function LandingPage() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
         >
           {[
-            { value: 87, suffix: '%', label: 'Time Saved Finding Resources', desc: 'Average reduction vs. manual search', icon: Clock, color: '#3b82f6', bgColor: 'rgba(59,130,246,0.06)' },
-            { value: 142, suffix: '', label: 'Crisis Interventions', desc: 'Lives connected to 988 hotline', icon: Shield, color: '#ef4444', bgColor: 'rgba(239,68,68,0.06)' },
-            { value: 12400, suffix: '+', label: 'Resources Connected', desc: 'People matched to verified services', icon: HandHeart, color: '#10b981', bgColor: 'rgba(16,185,129,0.06)' },
-            { value: 96, suffix: '%', label: 'User Satisfaction Rate', desc: 'Based on post-interaction surveys', icon: Smile, color: '#f59e0b', bgColor: 'rgba(245,158,11,0.06)' },
+            { value: 6, suffix: '', label: 'Pipelines Layers', desc: 'Crisis regex → vague check → injection check → BART → confidence gate → human', icon: Clock, color: '#3b82f6', bgColor: 'rgba(59,130,246,0.06)' },
+            { value: 3, suffix: '', label: 'Fallback Tiers', desc: 'Raw fetch → HuggingFace SDK → keyword match. No silent failures.', icon: Shield, color: '#ef4444', bgColor: 'rgba(239,68,68,0.06)' },
+            { value: 9, suffix: '', label: 'Crisis Sub-Types', desc: 'Self-harm, DV, sexual assault, child/elder abuse, weapons, homicide, medical — each routed to a specific hotline', icon: HandHeart, color: '#10b981', bgColor: 'rgba(16,185,129,0.06)' },
+            { value: 0, suffix: '', label: 'Auto-Dials', desc: 'The user always clicks. The user always calls. A real person has to be the one helping.', icon: Smile, color: '#f59e0b', bgColor: 'rgba(245,158,11,0.06)' },
           ].map((stat, i) => {
             const Icon = stat.icon
             return (
@@ -2098,11 +2108,11 @@ export default function LandingPage() {
           className="text-center mb-16"
         >
           <motion.h2 variants={staggerItem} className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">
-            Trusted by people on the front lines
+            Who ClearPath AI was designed for
           </motion.h2>
-          <motion.p variants={staggerItem} className="text-[12px] text-gray-400 mt-1 italic">(Illustrative — representing typical user experiences)</motion.p>
+          <motion.p variants={staggerItem} className="text-[12px] text-amber-600 mt-1 italic font-semibold">Note: ClearPath AI is a hackathon build (June 2026). These are designed use cases, not testimonials from real users. No pilots have been run yet.</motion.p>
           <motion.p variants={staggerItem} className="text-lg text-gray-500 mt-4 max-w-2xl mx-auto">
-            Social workers, navigators, counselors, and health professionals share their experience with ClearPath AI.
+            The sections below describe the people and professions ClearPath AI was designed to serve. We have not yet run a pilot — these are design scenarios, not real user feedback.
           </motion.p>
         </motion.div>
 
