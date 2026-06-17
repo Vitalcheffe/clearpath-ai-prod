@@ -393,7 +393,7 @@ const exampleResources = [
 const auditLogs = [
   { id: 'AUD-20260609-001', timestamp: 'Jun 9, 2026 14:32:18', action: 'Navigator Confirmed', resource: 'Sunrise Emergency Shelter', navigator: 'Our team (manual verification)', tier: '3 → 4', icon: UserCheck, color: '#10b981' },
   { id: 'AUD-20260609-002', timestamp: 'Jun 9, 2026 13:15:44', action: 'Database Verified', resource: 'Metro Food Pantry Network', navigator: 'System', tier: '1 → 2', icon: Database, color: '#3b82f6' },
-  { id: 'AUD-20260609-003', timestamp: 'Jun 9, 2026 11:47:02', action: 'User Report Resolved', resource: 'Hope Community Health Center', navigator: 'James K.', tier: '2 → 3', icon: MessageSquare, color: '#f59e0b' },
+  { id: 'AUD-20260609-003', timestamp: 'Jun 9, 2026 11:47:02', action: 'User Report Resolved', resource: 'Hope Community Health Center', navigator: 'Our team (manual verification)', tier: '2 → 3', icon: MessageSquare, color: '#f59e0b' },
   { id: 'AUD-20260609-004', timestamp: 'Jun 9, 2026 10:22:37', action: 'Stale Resource Flagged', resource: 'Eastside Job Corps Center', navigator: 'System', tier: '4 → Flagged', icon: AlertTriangle, color: '#ef4444' },
   { id: 'AUD-20260608-005', timestamp: 'Jun 8, 2026 16:58:11', action: 'Automated Check Passed', resource: 'VA PTSD Support Line', navigator: 'System', tier: '4 (Renewed)', icon: RefreshCw, color: '#8b5cf6' },
   { id: 'AUD-20260608-006', timestamp: 'Jun 8, 2026 15:33:29', action: 'Navigator Confirmed', resource: 'Harbor House Domestic Violence Shelter', navigator: 'Our team (manual verification)', tier: '3 → 4', icon: UserCheck, color: '#10b981' },

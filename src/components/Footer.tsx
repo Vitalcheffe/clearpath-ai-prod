@@ -59,9 +59,8 @@ function ShieldAlertIcon({ className }: { className?: string }) {
 
 // ─── FOOTER LINK DATA ────────────────────────────────────
 const productLinks = [
-  { label: 'How It Works', href: '/#how-it-works', icon: Cpu, desc: 'Our 6-layer pipeline' },
-  { label: 'API Docs', href: '/verification', icon: FileText, desc: 'Integration guide' },
-  { label: 'Pricing', href: '/pricing', icon: DollarSign, desc: 'Free forever for individuals' },
+  { label: 'How It Works', href: '/how-it-works', icon: Cpu, desc: 'Our 6-layer pipeline' },
+  { label: 'Pricing', href: '/pricing', icon: DollarSign, desc: 'Free, no paid tier' },
   { label: 'Blog', href: '/blog', icon: BookOpen, desc: 'Responsible AI insights' },
   { label: 'Verification', href: '/verification', icon: ShieldCheck, desc: 'How we verify resources' },
 ]

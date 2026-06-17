@@ -183,14 +183,13 @@ const contactMethods = [
   },
   {
     icon: MessageCircle,
-    label: 'Community Forum',
-    value: 'Coming Soon',
-    description: 'Peer support, feature requests, and discussions',
+    label: 'Discord (Hackathon Community)',
+    value: 'discord.gg/ePjenJnyh4',
+    description: 'The USAII hackathon Discord — we read messages there. Not a ClearPath support channel.',
     color: '#10b981',
-    href: '#',
-    available: 'Launching Q3 2026',
-    responseTime: 'Community-driven',
-    comingSoon: true,
+    href: 'https://discord.gg/ePjenJnyh4',
+    available: 'Hackathon community — not 24/7 support',
+    responseTime: 'Best-effort',
   },
   {
     icon: Github,
@@ -317,37 +316,36 @@ const socialPlatforms = [
   },
   {
     name: 'Twitter / X',
-    handle: '@ClearPathAI',
-    description: 'Follow us for product updates, AI safety insights, hackathon progress, and community highlights. We share our development journey openly — including the hard parts. Regular threads on responsible AI.',
+    handle: 'Not on Twitter',
+    description: 'We do not have a Twitter/X account for ClearPath AI. Two high school students building a hackathon project do not need a social media presence. If we create one after the hackathon, we will link it here.',
     icon: Twitter,
     color: '#0ea5e9',
     gradient: 'from-sky-500 to-blue-600',
-    stats: ['Daily Updates', 'AI Safety Threads', 'Community Polls'],
-    href: 'https://twitter.com/ClearPathAI',
-    cta: 'Follow Us',
+    stats: ['No account'],
+    href: '#',
+    cta: 'N/A',
   },
   {
     name: 'LinkedIn',
-    handle: 'ClearPath AI',
-    description: 'Connect with us for professional updates, partnership announcements, team growth, and thought leadership on AI ethics in social services. We post weekly articles on responsible AI deployment.',
+    handle: 'No company page',
+    description: 'We do not have a LinkedIn company page for ClearPath AI. There is no company — this is a hackathon build. If ClearPath AI becomes a real product, we may create one. For now: nothing to link here.',
     icon: Linkedin,
     color: '#0a66c2',
     gradient: 'from-blue-600 to-blue-800',
-    stats: ['Weekly Articles', 'Partner Spotlights', 'Career Posts'],
-    href: 'https://linkedin.com/company/clearpath-ai',
-    cta: 'Connect',
+    stats: ['No company page'],
+    href: '#',
+    cta: 'N/A',
   },
   {
-    name: 'Discord',
-    handle: 'ClearPath Community',
-    description: 'Join our community server for real-time discussion, peer support, developer chat, and direct access to the team. We host monthly AMA sessions and community calls. Launching Q3 2026.',
+    name: 'USAII Hackathon Discord',
+    handle: 'public server',
+    description: 'We do not run our own Discord. The USAII hackathon has a public Discord where we sometimes read messages — but it is a hackathon community server, not a ClearPath support channel.',
     icon: MessageCircle,
     color: '#5865f2',
     gradient: 'from-indigo-500 to-violet-600',
-    stats: ['Monthly AMAs', 'Dev Channel', 'Support Channel'],
-    href: '#',
-    cta: 'Coming Soon',
-    comingSoon: true,
+    stats: ['Hackathon community', 'Not 24/7 support'],
+    href: 'https://discord.gg/ePjenJnyh4',
+    cta: 'Join Discord',
   },
 ]
 
@@ -448,58 +446,10 @@ const communityGuidelines = [
 ]
 
 /* ═══ Enterprise Partnership Tiers Data ═══ */
-const partnerTiers = [
-  {
-    name: 'Community Partner',
-    icon: Heart,
-    price: 'Free',
-    description: 'For small nonprofits and community organizations that want to list resources on ClearPath AI and receive basic integration support.',
-    features: [
-      'Resource listing on ClearPath AI',
-      'Basic API access (1,000 calls/month)',
-      'Community forum support',
-      'Quarterly resource verification reports',
-      'Newsletter with AI safety updates',
-    ],
-    color: '#10b981',
-    gradient: 'from-emerald-500 to-teal-600',
-  },
-  {
-    name: 'Impact Partner',
-    icon: Target,
-    price: '$299/month',
-    description: 'For mid-size organizations that need deeper integration, dedicated support, and custom resource classification for their communities.',
-    features: [
-      'Everything in Community, plus:',
-      '(No API tier — this is a hackathon build)',
-      'Custom resource classification',
-      'Dedicated partnership manager',
-      'Monthly sync calls',
-      'Priority support (< 8 hour response)',
-      'Co-branded resource pages',
-    ],
-    color: '#3b82f6',
-    gradient: 'from-blue-500 to-blue-600',
-  },
-  {
-    name: 'Enterprise Partner',
-    icon: Award,
-    price: 'Custom',
-    description: 'For large organizations, government agencies, and healthcare networks that need full integration, SLAs, and white-label solutions.',
-    features: [
-      'Everything in Impact, plus:',
-      'Unlimited API access',
-      'White-label solutions',
-      'Custom SLA agreements',
-      'On-premise deployment options',
-      'Dedicated engineering liaison',
-      'Quarterly business reviews',
-      'No PII collected (privacy-first)'
-    ],
-    color: '#8b5cf6',
-    gradient: 'from-violet-500 to-purple-600',
-  },
-]
+// Honest status: there are no enterprise partnership tiers. This is a hackathon
+// build. Anyone can fork the GitHub repo and self-host. The array is intentionally
+// empty — we will not fabricate fake pricing tiers.
+const partnerTiers: any[] = []
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -853,7 +803,7 @@ export default function ContactPage() {
                         </span>
                       </div>
                     )}
-                    {method.comingSoon && (
+                    {false && (
                       <div className="absolute -top-2 -right-2">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500 text-white">
                           <Sparkles className="w-2.5 h-2.5" /> Soon
@@ -894,7 +844,7 @@ export default function ContactPage() {
                       </div>
                     </div>
 
-                    {!method.comingSoon && (
+                    {true && (
                       <a
                         href={method.href}
                         target={method.href.startsWith('http') ? '_blank' : undefined}
@@ -1723,7 +1673,7 @@ export default function ContactPage() {
                             <h3 className="text-[17px] font-extrabold text-gray-900 tracking-tight">
                               {platform.name}
                             </h3>
-                            {platform.comingSoon && (
+                            {false && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500 text-white">
                                 <Sparkles className="w-2.5 h-2.5" /> Soon
                               </span>
@@ -1758,7 +1708,7 @@ export default function ContactPage() {
                       </div>
 
                       {/* CTA */}
-                      {!platform.comingSoon ? (
+                      {true ? (
                         <a
                           href={platform.href}
                           target="_blank"
@@ -2373,11 +2323,11 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-[18px] font-bold text-gray-900 tracking-tight">
-                      Community Forum & Discord
+                      USAII Hackathon Discord (no ClearPath Discord)
                     </h3>
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/60 mt-1">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-500 border border-gray-100 mt-1">
                       <Sparkles className="w-2.5 h-2.5" />
-                      Coming Q3 2026
+                      Hackathon community only
                     </div>
                   </div>
                 </div>
