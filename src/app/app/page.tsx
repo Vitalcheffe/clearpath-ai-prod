@@ -506,6 +506,8 @@ function LoadingIndicator() {
 // ─── QUERY RESULT BLOCK ──────────────────────────────────
 // Renders one query + its classification result
 function QueryResultBlock({ entry, onClarify }: { entry: QueryEntry; onClarify: (text: string) => void }) {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   const { query, result, timestamp } = entry
 
   return (
