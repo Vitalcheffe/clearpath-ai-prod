@@ -518,6 +518,15 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
     return { results: keywordClassify(text), debug };
   }
 
+  // ── KEY FORMAT VALIDATION ──
+  // HuggingFace tokens must start with "hf_" — if not, the key is malformed
+  if (!HF_API_KEY.startsWith("hf_")) {
+    console.warn(`[classify] HUGGINGFACE_API_KEY is malformed (doesn't start with 'hf_') — using keyword matching`);
+    debug.fallbackUsed = true;
+    debug.fallbackReason = `API key malformed (must start with 'hf_', got prefix '${HF_API_KEY.substring(0, 4)}...')`;
+    return { results: keywordClassify(text), debug };
+  }
+
   // ── CALLING HF API — with full diagnostic logging ──
   debug.fetchAttempted = true;
   console.log(`[classify] Calling HF API`);
@@ -600,8 +609,18 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
     debug.fetchElapsedMs = elapsed;
     const cause = (fetchErr as any)?.cause;
     debug.fetchError = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
-    const causeInfo = cause ? ` (cause: ${cause.code || cause.message || cause.name || 'unknown'}${cause.hostname ? ` hostname=${cause.hostname}` : ''})` : '';
+    // Capture detailed cause info for debugging (DNS, network, auth errors)
+    const causeDetails = cause ? {
+      code: cause.code,
+      message: cause.message,
+      name: cause.name,
+      hostname: cause.hostname,
+      errno: cause.errno,
+      syscall: cause.syscall,
+    } : null;
+    const causeInfo = cause ? ` (cause: ${cause.code || cause.message || cause.name || 'unknown'}${cause.hostname ? ` hostname=${cause.hostname}` : ''}${cause.syscall ? ` syscall=${cause.syscall}` : ''})` : '';
     console.error(`[classify] HF fetch FAILED after ${elapsed}ms: ${debug.fetchError}${causeInfo}`);
+    debug.hfResponseBody = causeDetails ? JSON.stringify(causeDetails) : null;
     debug.fallbackUsed = true;
     debug.fallbackReason = `HF fetch failed after ${elapsed}ms: ${debug.fetchError}${causeInfo}`;
   }
