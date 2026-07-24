@@ -24,7 +24,8 @@ const I18nContext = createContext<I18nContextValue>({
 });
 
 // ─── Cookie helpers ─────────────────────────────────────────────────────────
-const LOCALE_COOKIE = "clearpath-locale";
+// Define locally (not imported from server.ts) to avoid client/server boundary issues
+export const LOCALE_COOKIE = "clearpath-locale";
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 function setLocaleCookie(locale: Locale) {
@@ -100,5 +101,4 @@ export function getTranslations(locale: Locale): Translations {
   return LOCALES[locale] ?? en;
 }
 
-export { LOCALE_COOKIE };
 export type { Translations };
