@@ -8,8 +8,10 @@ import { FRENCH_CITIES, FRENCH_CITY_RESOURCES, findNearestFrenchCity, getResourc
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
 const HF_MODEL = "facebook/bart-large-mnli";                       // English (existing)
 const HF_MODEL_MULTILINGUAL = "facebook/xlm-roberta-large-xnli";   // Multilingual (French support)
-const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
-const HF_API_URL_MULTILINGUAL = `https://api-inference.huggingface.co/models/${HF_MODEL_MULTILINGUAL}`;
+// HuggingFace migrated Inference API from api-inference.huggingface.co to router.huggingface.co
+// The old endpoint returns ENOTFOUND on Vercel's network
+const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
+const HF_API_URL_MULTILINGUAL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL_MULTILINGUAL}`;
 
 // ─── French language helpers ──────────────────────────────
 function normalizeFrench(s: string): string {
