@@ -44,6 +44,16 @@ function isFrenchInput(text: string): boolean {
   return frenchWords && frenchBigrams;
 }
 
+// Haversine distance in km (for coordinate-based country detection)
+function haversineKmLocal(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (deg: number) => deg * (Math.PI / 180);
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return 6371 * c;
+}
+
 // ─── Boot-time diagnostic (runs once when serverless function cold-starts) ───
 console.log(`[classify:boot] HF_API_KEY present: ${!!HF_API_KEY}`);
 
@@ -143,7 +153,10 @@ const CRISIS_PATTERNS = [
   /took?\s+(a\s+)?(whole\s+)?(bottle|bunch|handful)\s+of\s+pills/i,
   /take\s+pills/i,
   /take\s+all\s+my\s+(pills|medication|medicine)/i,
+  /took\s+all\s+my\s+(pills|medication|medicine)/i,
   /going\s+to\s+take\s+all\s+my/i,
+  /i\s+(just\s+)?took\s+(all|too\s+many|a\s+bunch\s+of)\s+(my\s+)?(pills|medication|medicine)/i,
+  /took\s+(too\s+many|a\s+lot\s+of)\s+(pills|medication|medicine)/i,
   /swallow(ed)?\s+(a\s+)?(bunch|handful|whole)\s+of\s+pills/i,
   /swallow(ed)?\s+pills/i,
   /pills\s+to\s+(end|die|kill)/i,
@@ -978,7 +991,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ─── Country detection: client param > Vercel IP header > null (US default) ───
+    const userLat = typeof lat === 'number' && lat >= -90 && lat <= 90 ? lat : undefined;
+    const userLng = typeof lng === 'number' && lng >= -180 && lng <= 180 ? lng : undefined;
+
+    // ─── Language detection: client locale > input heuristic ───
+    const isFrench = clientLocale === 'fr' || (!clientLocale && isFrenchInput(text));
+
+    // ─── Country detection (multi-layer): ───
+    //   1. Explicit country param from client
+    //   2. Vercel x-vercel-ip-country header (production)
+    //   3. Coordinate-based detection (lat/lng near a French city → that country)
+    //   4. If isFrench and still unknown → default to "france" (largest FR population)
+    //   5. null = US default
     const ipCountry = request.headers.get('x-vercel-ip-country');
     let country: string | null = null;
     if (explicitCountry && SUPPORTED_COUNTRIES.some(c => c.id === explicitCountry)) {
@@ -988,29 +1012,73 @@ export async function POST(request: NextRequest) {
       if (detected) country = detected.id;
     }
 
-    // ─── Language detection: client locale > input heuristic ───
-    const isFrench = clientLocale === 'fr' || (!clientLocale && isFrenchInput(text));
+    // Coordinate-based country detection: find the NEAREST French city (within 150km)
+    // and assign that city's country. We use nearest (not first-within-threshold)
+    // to handle border cases like Geneva/Lyon (108km apart) correctly.
+    if (!country && userLat !== undefined && userLng !== undefined) {
+      let nearestDist = Infinity;
+      let nearestCountry: string | null = null;
+      for (const city of FRENCH_CITIES) {
+        const dist = haversineKmLocal(userLat, userLng, city.lat, city.lng);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearestCountry = city.countryId;
+        }
+      }
+      // Only assign if within 150km of a French city (avoids false positives for US users)
+      if (nearestCountry && nearestDist <= 150) {
+        country = nearestCountry;
+      }
+    }
 
-    const userLat = typeof lat === 'number' && lat >= -90 && lat <= 90 ? lat : undefined;
-    const userLng = typeof lng === 'number' && lng >= -180 && lng <= 180 ? lng : undefined;
+    // If input is French but country still unknown, default to France
+    if (!country && isFrench) {
+      country = 'france';
+    }
 
-    // ─── Multi-city resolution: explicit > geolocation > default ───
+    // ─── Multi-city resolution ───
+    // For French countries: use findNearestFrenchCity (country-isolated)
+    // For US/null: use existing city logic
     let cityId: string = 'houston';
     let cityMatch: CityMatch | null = null;
     let cityLabel = 'Houston, TX';
 
-    if (explicitCityId && SUPPORTED_CITIES.some(c => c.id === explicitCityId)) {
-      // (1) User explicitly selected a city
+    if (country) {
+      // French-speaking country — use French city resolution (country-isolated)
+      if (userLat !== undefined && userLng !== undefined) {
+        const frMatch = findNearestFrenchCity(userLat, userLng, country);
+        if (frMatch) {
+          cityId = frMatch.city.id;
+          cityLabel = frMatch.city.nameFr;
+          cityMatch = { city: frMatch.city as any, isInServiceArea: frMatch.isInServiceArea, distanceMi: frMatch.distanceKm * 0.621371 } as any;
+        } else {
+          // No geolocation match — use first city in country
+          const cities = getCitiesForCountry(country);
+          if (cities.length > 0) {
+            cityId = cities[0].id;
+            cityLabel = cities[0].nameFr;
+          }
+        }
+      } else {
+        // No geolocation — use first city in country
+        const cities = getCitiesForCountry(country);
+        if (cities.length > 0) {
+          cityId = cities[0].id;
+          cityLabel = cities[0].nameFr;
+        }
+      }
+    } else if (explicitCityId && SUPPORTED_CITIES.some(c => c.id === explicitCityId)) {
+      // US: user explicitly selected a city
       cityId = explicitCityId;
       const city = SUPPORTED_CITIES.find(c => c.id === cityId)!;
       cityLabel = city.label;
     } else if (userLat !== undefined && userLng !== undefined) {
-      // (2) Auto-detect from geolocation
+      // US: auto-detect from geolocation
       cityMatch = findNearestCity(userLat, userLng);
       cityId = cityMatch.city.id;
       cityLabel = cityMatch.city.label;
     }
-    // (3) Default: Houston (already set)
+    // Default: Houston (already set)
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       return NextResponse.json(

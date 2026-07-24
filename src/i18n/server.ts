@@ -1,10 +1,18 @@
 // ────────────────────────────────────────────────────────────────────────────
 // CLEARPATH AI — SERVER-SIDE LOCALE DETECTION
 // ────────────────────────────────────────────────────────────────────────────
+// IMPORTANT: LOCALE_COOKIE is defined HERE (not imported from index.tsx)
+// because index.tsx is a "use client" module. Importing a constant from a
+// client module into middleware (edge runtime) causes the value to become
+// a client reference instead of the actual string, breaking the middleware.
+// ────────────────────────────────────────────────────────────────────────────
 
-import type { Locale } from "./index";
-import { LOCALE_COOKIE } from "./index";
 import { getCountryFromIsoCode } from "@/data/frenchResources";
+
+// Define the cookie name as a server-side constant (NOT imported from client)
+export const LOCALE_COOKIE = "clearpath-locale";
+
+export type Locale = "en" | "fr";
 
 const FRENCH_COUNTRY_CODES = ["MA", "FR", "BE", "CH", "CA"];
 
@@ -55,6 +63,3 @@ export function detectCountryFromRequest(request: {
 export function getFrenchCountryCodes(): string[] {
   return FRENCH_COUNTRY_CODES;
 }
-
-export { LOCALE_COOKIE };
-export type { Locale };

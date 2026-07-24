@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { I18nProvider, type Locale, LOCALE_COOKIE } from "@/i18n";
+import { I18nProvider, type Locale } from "@/i18n";
+import { LOCALE_COOKIE, type Locale as ServerLocale } from "@/i18n/server";
 import { getCountryFromIsoCode } from "@/data/frenchResources";
 
 const inter = Inter({
