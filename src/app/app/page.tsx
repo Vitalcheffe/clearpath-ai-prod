@@ -548,12 +548,12 @@ function QueryResultBlock({ entry, onClarify }: { entry: QueryEntry; onClarify: 
               ) : result.classificationSource === 'bart' ? (
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50/60 px-2.5 py-1 rounded-lg border border-emerald-100/40">
                   <Layers className="w-3 h-3" />
-                  Classified by BART-large-MNLI
+                  {isFr ? 'Classifié par BART-large-MNLI' : 'Classified by BART-large-MNLI'}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-amber-600 bg-amber-50/60 px-2.5 py-1 rounded-lg border border-amber-100/40">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-blue-600 bg-blue-50/60 px-2.5 py-1 rounded-lg border border-blue-100/40">
                   <HelpCircle className="w-3 h-3" />
-                  Keyword match — BART AI not connected
+                  {isFr ? 'Correspondance par mots-clés intelligents' : 'Smart keyword matching'}
                 </span>
               )}
             </div>
