@@ -6,10 +6,10 @@ import { FRENCH_CITIES, FRENCH_CITY_RESOURCES, findNearestFrenchCity, getResourc
 
 // ─── Configuration ─────────────────────────────────────────
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
-// EN: BART-large-MNLI (460M) — works but slow cold start (relies on client retry)
-// FR: mDeBERTa-v3-base-mnli-xnli (279M) — fast, supports French, works on free tier
-const HF_MODEL = "facebook/bart-large-mnli";                        // English (supported on free tier)
-const HF_MODEL_MULTILINGUAL = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"; // Multilingual — fast, supports French
+// Using mDeBERTa-v3 for BOTH EN and FR — it's multilingual, fast (3-4s), and works on free tier
+// BART-large-MNLI was too slow (cold start >8s → Vercel timeout)
+const HF_MODEL = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli";        // Multilingual — works for EN + FR
+const HF_MODEL_MULTILINGUAL = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"; // Same model for FR
 // HuggingFace migrated Inference API from api-inference.huggingface.co to router.huggingface.co
 const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
 const HF_API_URL_MULTILINGUAL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL_MULTILINGUAL}`;
