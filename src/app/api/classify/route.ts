@@ -546,6 +546,8 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
   // ── SINGLE ATTEMPT: Raw fetch with aggressive timeout ──
   // 9s timeout — Vercel free tier kills functions at 10s, so 9s is the max safe value
   // BART-large-MNLI cold start can take 5-8s; XLM-RoBERTa can take 6-9s
+  // x-wait-for-model header tells HuggingFace to WAIT for model to load
+  // instead of returning 503 immediately on cold start
   const fetchStart = Date.now();
   try {
     const controller = new AbortController();
@@ -556,6 +558,7 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
       headers: {
         Authorization: `Bearer ${HF_API_KEY}`,
         "Content-Type": "application/json",
+        "x-wait-for-model": "true",
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,

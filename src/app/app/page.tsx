@@ -720,7 +720,7 @@ export default function Home() {
     setInputText('')
     setIsLoading(true)
 
-    try {
+    const callApi = async (): Promise<ClassifyResponse | null> => {
       const requestBody: Record<string, string | number> = { text: userText }
       if (userLocation) {
         requestBody.lat = userLocation.lat
@@ -729,18 +729,36 @@ export default function Home() {
       if (selectedCityId) {
         requestBody.cityId = selectedCityId
       }
-      // Send locale + country to backend for French/multilingual classification
       requestBody.locale = t.locale
-      // Country will be auto-detected by backend via Vercel IP header
 
-      const res = await fetch('/api/classify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(15000), // 15s client timeout — Vercel kills at 10s so 15s is safe
-      })
+      try {
+        const res = await fetch('/api/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+          signal: AbortSignal.timeout(12000),
+        })
+        if (!res.ok) return null
+        return await res.json()
+      } catch {
+        return null
+      }
+    }
 
-      if (!res.ok) {
+    try {
+      let data = await callApi()
+
+      // If first call fell back to keyword matching (BART cold start timeout),
+      // wait 2s and retry — the model should be warm now
+      if (data && data.classificationSource === 'keyword' && !data.isCrisis) {
+        await new Promise(r => setTimeout(r, 2000))
+        const retryData = await callApi()
+        if (retryData && retryData.classificationSource === 'bart') {
+          data = retryData // Use BART result if retry succeeded
+        }
+      }
+
+      if (!data) {
         setIsLoading(false)
         setQueries(prev => [...prev, {
           id: nextId.current++,
@@ -757,9 +775,7 @@ export default function Home() {
         return
       }
 
-      const data: ClassifyResponse = await res.json()
       setIsLoading(false)
-      // Update city info from server response (auto-detected via geolocation)
       if (data.cityId && !selectedCityId) {
         setSelectedCityId(data.cityId)
       }
