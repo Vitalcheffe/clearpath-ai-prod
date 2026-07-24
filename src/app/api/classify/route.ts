@@ -1283,7 +1283,7 @@ export async function POST(request: NextRequest) {
       : (classificationSource === 'bart'
         ? "BART-large-MNLI (live)"
         : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
-        ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'})`
+        ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'} | ${classificationDebug.fallbackReason ?? ''})`
         : "Keyword matching (BART API key not configured)");
 
     // For French countries, determine the French city label
@@ -1326,7 +1326,7 @@ export async function POST(request: NextRequest) {
       cityLabel: country ? frenchCityLabel : cityLabel,
       country,
       locale: isFrench ? 'fr' : 'en',
-      debug: process.env.NODE_ENV === 'development' ? classificationDebug : undefined,
+      debug: classificationDebug,
     });
   } catch (error) {
     console.error("Classification API error:", error);
