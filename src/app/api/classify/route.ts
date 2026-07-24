@@ -1263,6 +1263,7 @@ export async function POST(request: NextRequest) {
     // We intercept vague input BEFORE calling BART to avoid false confidence.
     // Crisis detection already ran above, so "help I'm suicidal" → crisis, not vague.
     const VAGUE_PATTERNS = [
+      // Exact-match vague phrases (no real content)
       /^(hey|hi|hello|yo|sup|what'?s up|hola|coucou|bonjour|salut)[\s!.?]*$/i,
       /^(test|testing|asdf|qwerty|abc|123|aaa+|lol|ok|yes|no|maybe|idk|something|stuff|things|whatever|dunno|sad|hungry|cold|tired|lost|scared|alone|bad|upset|angry|confused|sick|broke|down|bored|sleepy|nice|cool|good|true|false|right|same|interesting|weird|strange|uh|um|ugh|meh|eh|huh|oh|wow|ah|mmm)[\s!.?]*$/i,
       /^(when|where|what|how|why|who|which|whom)$/i,  // Single question words — no context
@@ -1271,8 +1272,31 @@ export async function POST(request: NextRequest) {
       /^(so what|what even|how come|how about|and then|is this real|how does this work|what is this|anyone there)[\s!.?]*$/i,
       /^[.?!]+$/,  // Only punctuation like "....." or "???" or "!!!"
       /^(good morning|good evening|hi there)[\s!.?]*$/i,
+      // ─── NEW: Vague phrases WITH extra words but no real context ───
+      // Catches "I need help with my situation", "help me with my problem", etc.
+      /^(i\s+)?(need|want|looking\s+for)\s+(help|assistance|support)\s+(with\s+)?(my|this|that|a)?\s*(situation|problem|issue|case|thing|stuff|life|family|kids|home|money)?[\s!.?]*$/i,
+      // "help me" + vague filler
+      /^help\s+me\s+(please|pls|with|im|i\s+am|my)?[\s!.?]*$/i,
+      // French vague: "j'ai besoin d'aide", "aidez-moi", "besoin aide"
+      /^(j?aide|aidez[\s-]?moi|besoin\s+d?aide|j?ai\s+besoin|je\s+veux\s+aide|aide\s+moi)[\s!.?]*$/i,
+      /^(j?ai\s+besoin\s+d?aide\s+(avec|pour)?\s*(mon|ma|mes|un|une)?\s*(situation|probl[èe]me|logement|argent|famille|vie)?[\s!.?]*$)/i,
+      // Short filler with no actionable content (< 20 chars and no specific keywords)
+      /^(i\s+need\s+help|i\s+want\s+help|need\s+help|help\s+me|help\s+please)[\s!.?]*$/i,
     ];
-    const isVague = VAGUE_PATTERNS.some(p => p.test(text.trim()));
+    let isVague = VAGUE_PATTERNS.some(p => p.test(text.trim()));
+
+    // ─── NEW: Content-based vagueness check ───
+    // If the text is short (< 30 chars) AND doesn't contain any specific
+    // resource keywords, it's too vague for meaningful classification
+    if (!isVague) {
+      const trimmed = text.trim();
+      const wordCount = trimmed.split(/\s+/).length;
+      // Specific keywords that indicate a real need (not vague)
+      const specificKeywords = /\b(rent|eviction|homeless|shelter|food|hungry|groceries|medical|doctor|hospital|sick|pain|medication|mental|depression|anxiety|therapy|job|employment|unemployed|work|fired|legal|lawyer|court|immigration|custody|divorce|senior|elderly|veteran|addiction|alcohol|drug|overdose|domestic|violence|abuse|logement|loyer|expulsion|nourriture|faim|sant[ée]|m[ée]decin|h[ôo]pital|malade|emploi|travail|ch[ôo]mage|juridique|avocat|tribunal|immigration|logement|personnes?\s+[âa]g[ée]s|addiction|alcool|drogue|violence|maltraitance|battue)\b/i;
+      if (wordCount <= 5 && !specificKeywords.test(trimmed)) {
+        isVague = true;
+      }
+    }
 
     // ── Layer 2b: Injection / adversarial input detection ──
     // SQL injection, XSS, prompt injection — should never reach BART
@@ -1307,15 +1331,87 @@ export async function POST(request: NextRequest) {
 
     const classificationSource = classifications.length > 0 ? classifications[0].source : 'keyword';
 
-    // Layer 4: Confidence-gated response
+    // ═══ Layer 4: Confidence calibration + diversity check ═══
+    // mDeBERTa returns very high scores (0.95-1.0) for ALL labels on short/vague
+    // inputs. This is a known issue with NLI-based zero-shot models — they tend
+    // to "agree" with everything when the input doesn't contradict any label.
+    // We fix this with two checks:
+
+    // CHECK 1: Score diversity — if top score and 5th score are within 5%,
+    // the model can't differentiate between categories → treat as vague
+    const sortedScores = classifications.map(c => c.score).sort((a, b) => b - a);
+    const scoreSpread = sortedScores[0] - (sortedScores[4] ?? sortedScores[sortedScores.length - 1]);
+    const allScoresTooClose = scoreSpread < 0.05 && classifications.length >= 5;
+
+    // CHECK 2: If ALL scores are > 0.95, the model is over-confident (typical
+    // of mDeBERTa on short inputs). Apply softmax-like normalization to spread them.
+    let calibratedClassifications = classifications;
+    if (classifications.length > 0 && classifications.every(c => c.score > 0.95)) {
+      // Apply temperature scaling to spread the scores
+      const TEMPERATURE = 50; // High temperature = more spread
+      const logits = classifications.map(c => Math.log(c.score / (1 - c.score + 0.001)) / TEMPERATURE);
+      const maxLogit = Math.max(...logits);
+      const expLogits = logits.map(l => Math.exp(l - maxLogit));
+      const sumExp = expLogits.reduce((a, b) => a + b, 0);
+      const softmaxScores = expLogits.map(e => e / sumExp);
+      calibratedClassifications = classifications.map((c, i) => ({
+        ...c,
+        score: softmaxScores[i],
+      }));
+      console.log(`[classify] Applied softmax calibration — top score: ${(Math.max(...softmaxScores) * 100).toFixed(1)}%`);
+    }
+
+    // If all scores are too close (model can't differentiate), treat as needs-clarification
+    if (allScoresTooClose && classificationSource === 'bart') {
+      console.log(`[classify] Scores too close (spread: ${(scoreSpread * 100).toFixed(1)}%) — forcing clarification`);
+      // Keep only the top 2 categories, mark as needing clarification
+      const topTwo = calibratedClassifications.slice(0, 2);
+      // Force clarification since the model is uncertain
+      return NextResponse.json({
+        isCrisis: false,
+        categories: topTwo.map(c => ({
+          label: c.label,
+          confidence: Math.round(c.score * 100),
+          resources: [],
+          why: isFrench
+            ? "L'IA a détecté plusieurs besoins possibles mais ne peut pas déterminer lequel est le plus important. Pouvez-vous préciser ?"
+            : "The AI detected multiple possible needs but can't determine which is most important. Can you be more specific?",
+          warning: isFrench
+            ? "Veuillez donner plus de détails pour une meilleure correspondance"
+            : "Please provide more detail for a better match",
+        })),
+        needsClarification: true,
+        clarificationMessage: isFrench
+          ? "Votre description est trop générale. Pouvez-vous préciser ce dont vous avez besoin ? Par exemple : « j'ai perdu mon emploi et je ne peux plus payer mon loyer »"
+          : "Your description is too general. Can you be more specific? For example: 'I lost my job and can't pay rent'",
+        clarificationQuestions: null,
+        model: isFrench ? "mDeBERTa-v3 (scores trop proches — clarification requise)" : "mDeBERTa-v3 (scores too close — clarification required)",
+        classificationSource: 'bart-uncertain',
+        hasLocation: userLat !== undefined,
+        outsideServiceArea: country
+          ? (location.frenchCityMatch === null)
+          : (cityMatch ? !cityMatch.isInServiceArea : false),
+        serviceArea: country
+          ? (location.frenchCityMatch
+            ? `${location.frenchCityMatch.city.nameFr}, ${location.countryNameFr}`
+            : location.countryNameFr)
+          : cityLabel + ' metro area',
+        cityId: country ? null : cityId,
+        cityLabel: country ? (location.frenchCityMatch?.city.nameFr ?? null) : cityLabel,
+        country,
+        locale: isFrench ? 'fr' : 'en',
+      });
+    }
+
+    // Layer 4b: Confidence-gated response (with calibrated scores)
     const MULTI_NEED_THRESHOLD = 0.10;
-    const MAX_CATEGORIES = 5;
-    let significantCategories = classifications
+    const MAX_CATEGORIES = 3; // Reduced from 5 to 3 — showing 5 categories at 100% is misleading
+    let significantCategories = calibratedClassifications
       .filter(c => c.score >= MULTI_NEED_THRESHOLD)
       .slice(0, MAX_CATEGORIES);
 
-    if (significantCategories.length === 0 && classifications.length > 0) {
-      significantCategories = [classifications[0]];
+    if (significantCategories.length === 0 && calibratedClassifications.length > 0) {
+      significantCategories = [calibratedClassifications[0]];
     }
 
     const CLARIFICATION_THRESHOLD = 0.70;
@@ -1403,17 +1499,13 @@ export async function POST(request: NextRequest) {
         ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'} | ${classificationDebug.fallbackReason ?? ''})`
         : "Keyword matching (BART API key not configured)");
 
-    // For French countries, determine the French city label
-    let frenchCityLabel: string | null = null;
-    if (country && userLat !== undefined && userLng !== undefined) {
-      const frMatch = findNearestFrenchCity(userLat, userLng, country);
-      if (frMatch) frenchCityLabel = frMatch.city.nameFr;
-    }
+    // Use location.frenchCityMatch (already resolved by resolveLocation)
+    const frenchCityLabel = location.frenchCityMatch?.city.nameFr ?? null;
 
     const serviceAreaLabel = country
       ? (frenchCityLabel
-        ? `${frenchCityLabel}, ${SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country}`
-        : (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country))
+        ? `${frenchCityLabel}, ${location.countryNameFr}`
+        : location.countryNameFr)
       : cityLabel + ' metro area';
 
     return NextResponse.json({
