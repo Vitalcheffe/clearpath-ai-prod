@@ -6,9 +6,9 @@ import { FRENCH_CITIES, FRENCH_CITY_RESOURCES, findNearestFrenchCity, getResourc
 
 // ─── Configuration ─────────────────────────────────────────
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
-// Switched to smaller, faster models to avoid Vercel 10s timeout on cold start
-// BART-large-MNLI (460M params) was too slow; DeBERTa-v3-base (184M) is 3x faster
-const HF_MODEL = "MoritzLaurer/DeBERTa-v3-base-MNLI";              // English — fast zero-shot NLI
+// EN: BART-large-MNLI (460M) — works but slow cold start (relies on client retry)
+// FR: mDeBERTa-v3-base-mnli-xnli (279M) — fast, supports French, works on free tier
+const HF_MODEL = "facebook/bart-large-mnli";                        // English (supported on free tier)
 const HF_MODEL_MULTILINGUAL = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"; // Multilingual — fast, supports French
 // HuggingFace migrated Inference API from api-inference.huggingface.co to router.huggingface.co
 const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
@@ -1263,7 +1263,7 @@ export async function POST(request: NextRequest) {
             ? `Correspondance par analyse sémantique mDeBERTa-v3 de votre description.`
             : `Correspondance par analyse de mots-clés. Pour des résultats plus précis, la classification IA nécessite une clé API.`)
           : (classificationSource === 'bart'
-            ? 'Matched by DeBERTa-v3-base-MNLI semantic analysis of your description.'
+            ? 'Matched by BART-large-MNLI semantic analysis of your description.'
             : 'Matched by keyword analysis. For more accurate results, BART AI classification requires an API key.'),
         also: significantCategories.length > 1
           ? (isFrench
@@ -1287,7 +1287,7 @@ export async function POST(request: NextRequest) {
         ? `Correspondance par mots-clés (échec de l'IA: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'inconnu'})`
         : "Correspondance par mots-clés (clé API non configurée)")
       : (classificationSource === 'bart'
-        ? "DeBERTa-v3-base-MNLI (live)"
+        ? "BART-large-MNLI (live)"
         : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
         ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'} | ${classificationDebug.fallbackReason ?? ''})`
         : "Keyword matching (BART API key not configured)");
@@ -1332,7 +1332,7 @@ export async function POST(request: NextRequest) {
       cityLabel: country ? frenchCityLabel : cityLabel,
       country,
       locale: isFrench ? 'fr' : 'en',
-      debug: process.env.NODE_ENV === 'development' ? classificationDebug : undefined,
+      debug: classificationDebug,
     });
   } catch (error) {
     console.error("Classification API error:", error);
@@ -1350,9 +1350,9 @@ export async function GET() {
     status: "ok",
     service: "ClearPath AI Classification API",
     version: "5.0.0",
-    model: hasApiKey ? "DeBERTa-v3-base-MNLI (en) + mDeBERTa-v3-base-mnli-xnli (fr, multilingue)" : "Keyword matching (fallback)",
+    model: hasApiKey ? "BART-large-MNLI (en) + mDeBERTa-v3-base-mnli-xnli (fr, multilingue)" : "Keyword matching (fallback)",
     bartAvailable: hasApiKey,
-    classificationMode: hasApiKey ? "DeBERTa-v3-base-MNLI (en) + mDeBERTa-v3 (fr)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
+    classificationMode: hasApiKey ? "BART-large-MNLI (en) + mDeBERTa-v3 (fr)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
     crisisDetection: "regex-based (deterministic) — English + French (accent-insensitive)",
     multiCity: true,
     multiCountry: true,
