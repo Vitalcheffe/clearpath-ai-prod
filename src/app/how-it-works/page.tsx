@@ -925,15 +925,17 @@ export default function HowItWorksPage() {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-blue-50/80 text-blue-600 border border-blue-100/60 mb-4">
                 <Layers className="w-3.5 h-3.5" />
-                The 6-Layer Transparency Pipeline
+                {isFr ? 'Le Pipeline de Transparence à 6 Couches' : 'The 6-Layer Transparency Pipeline'}
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">
-                Six layers. Zero black boxes.
+                {isFr ? 'Six couches. Zéro boîte noire.' : 'Six layers. Zero black boxes.'}
               </h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-3xl mx-auto leading-relaxed">
-                Every query travels through six distinct layers — from free-text input to human escalation.
-                Each layer has a specific purpose, defined inputs and outputs, and auditable behavior.
-                Here is a deep dive into every single layer.
+                {isFr ? (
+                  'Chaque requête traverse six couches distinctes — de la saisie en texte libre jusqu\'au relais humain. Chaque couche a un objectif précis, des entrées et sorties définies, et un comportement auditable. Voici une exploration détaillée de chaque couche.'
+                ) : (
+                  'Every query travels through six distinct layers — from free-text input to human escalation. Each layer has a specific purpose, defined inputs and outputs, and auditable behavior. Here is a deep dive into every single layer.'
+                )}
               </p>
             </motion.div>
 
@@ -1842,7 +1844,7 @@ export default function HowItWorksPage() {
                   <ShieldCheck className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0 space-y-4">
-                  <h3 className="text-[18px] font-bold text-gray-900 tracking-tight">Why BART-large-MNLI Cannot Hallucinate</h3>
+                  <h3 className="text-[18px] font-bold text-gray-900 tracking-tight">{isFr ? "Pourquoi BART-large-MNLI ne peut pas halluciner" : 'Why BART-large-MNLI Cannot Hallucinate'}</h3>
                   <p className="text-[14px] text-gray-500 leading-relaxed">
                     The key insight is that BART-large-MNLI is a <span className="font-semibold text-gray-700">classification model, not a generative model</span>.
                     It does not produce new text — it only assigns probabilities to predefined labels. This is a fundamental architectural difference:
