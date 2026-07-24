@@ -3,6 +3,7 @@ import { HfInference } from "@huggingface/inference";
 import { HOUSTON_RESOURCES, RESOURCES_BY_CATEGORY, findNearestCity, getResourcesByCategoryForCity, SUPPORTED_CITIES, NATIONAL_RESOURCES, type CityMatch, type SupportedCity } from "@/data/resources";
 import { FRENCH_CRISIS_PATTERNS, COUNTRY_HOTLINES } from "@/data/frenchCrisisResources";
 import { FRENCH_BART_LABELS, COUNTRY_RESOURCES, SUPPORTED_COUNTRIES, getCountryFromIsoCode, type CountryResource } from "@/data/frenchResources";
+import { FRENCH_CITIES, FRENCH_CITY_RESOURCES, findNearestFrenchCity, getResourcesForCityByAnyCategory, getCitiesForCountry, type FrenchCity, type FrenchCityResource } from "@/data/frenchCityResources";
 
 // ─── Configuration ─────────────────────────────────────────
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
@@ -863,8 +864,16 @@ function getCrisisLinesForCountry(
   ];
 }
 
-// ─── FRENCH RESOURCES FETCHER ──────────────────────────────
-function getFrenchResourcesForCategory(category: string, countryId: string): Array<{
+// ─── FRENCH RESOURCES FETCHER (city-level, country-isolated) ──────────
+// CRITICAL: This function fetches resources for a SPECIFIC CITY within a SPECIFIC COUNTRY.
+// A French user will NEVER see Casablanca resources — country isolation is enforced
+// by findNearestFrenchCity() which only searches within the user's country.
+function getFrenchResourcesForCategory(
+  category: string,
+  countryId: string,
+  userLat?: number,
+  userLng?: number
+): Array<{
   name: string;
   detail: string;
   phone?: string;
@@ -874,40 +883,39 @@ function getFrenchResourcesForCategory(category: string, countryId: string): Arr
   verified: string;
   distance: string;
 }> {
-  const resources = COUNTRY_RESOURCES[countryId] ?? [];
   const countryInfo = SUPPORTED_COUNTRIES.find(c => c.id === countryId);
   const countryFlag = countryInfo?.flag ?? '📍';
 
-  const categoryMap: Record<string, string[]> = {
-    'Logement': ['Logement'],
-    'Aide alimentaire': ['Aide alimentaire'],
-    'Santé': ['Santé'],
-    'Aide juridique': ['Aide juridique'],
-    'Emploi': ['Emploi'],
-    'Santé mentale': ['Santé mentale'],
-    'Addictions': ['Addictions'],
-    'Personnes âgées': ['Personnes âgées'],
-    'Housing Assistance': ['Logement'],
-    'Food Assistance': ['Aide alimentaire'],
-    'Healthcare': ['Santé'],
-    'Legal Aid': ['Aide juridique'],
-    'Employment': ['Emploi'],
-    'Employment Services': ['Emploi'],
-    'Mental Health': ['Santé mentale'],
-    'Substance Use': ['Addictions'],
-    'Senior Services': ['Personnes âgées'],
-    'Senior Support': ['Personnes âgées'],
-    'Veteran Services': [],
-    'Veteran Support': [],
-    'Crisis Support': [],
-  };
+  // Determine which city to use
+  let cityId: string | null = null;
+  let cityLabel: string = countryInfo?.nameFr ?? countryId;
 
-  const targetCategories = categoryMap[category] ?? [category];
-  const filtered = resources.filter(r => targetCategories.includes(r.category));
+  if (userLat !== undefined && userLng !== undefined) {
+    // Find nearest city WITHIN this country (country isolation)
+    const match = findNearestFrenchCity(userLat, userLng, countryId);
+    if (match) {
+      cityId = match.city.id;
+      cityLabel = match.city.nameFr;
+    }
+  }
 
-  if (filtered.length === 0) return [];
+  // If no geolocation, use the first city in the country as fallback
+  if (!cityId) {
+    const cities = getCitiesForCountry(countryId);
+    if (cities.length > 0) {
+      cityId = cities[0].id;
+      cityLabel = cities[0].nameFr;
+    }
+  }
 
-  return filtered.map(r => ({
+  if (!cityId) return [];
+
+  // Get resources for this city + category (accepts EN or FR category names)
+  const resources = getResourcesForCityByAnyCategory(cityId, category);
+
+  if (resources.length === 0) return [];
+
+  return resources.map(r => ({
     name: r.name,
     detail: r.description + (r.phone ? ` Appelez le ${r.phone}` : '') + (r.hours ? ` Horaires: ${r.hours}` : ''),
     phone: r.phone,
@@ -915,7 +923,7 @@ function getFrenchResourcesForCategory(category: string, countryId: string): Arr
     hours: r.hours,
     eligibility: r.eligibility,
     verified: r.verified,
-    distance: `${countryFlag} ${countryInfo?.nameFr ?? countryId}`,
+    distance: `${countryFlag} ${cityLabel}`,
   }));
 }
 
@@ -1055,10 +1063,17 @@ export async function POST(request: NextRequest) {
 
       // For French countries, return French crisis resources; for US, return US crisis resources
       const crisisResources = country
-        ? getFrenchResourcesForCategory("Crisis Support", country).length > 0
-          ? getFrenchResourcesForCategory("Crisis Support", country)
+        ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng).length > 0
+          ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng)
           : getResourcesForCategory("Crisis Support", cityId, userLat, userLng)
         : getResourcesForCategory("Crisis Support", cityId, userLat, userLng);
+
+      // For French countries, determine the French city label
+      let frenchCityLabel: string | null = null;
+      if (country && userLat !== undefined && userLng !== undefined) {
+        const frMatch = findNearestFrenchCity(userLat, userLng, country);
+        if (frMatch) frenchCityLabel = frMatch.city.nameFr;
+      }
 
       return NextResponse.json({
         isCrisis: true,
@@ -1072,12 +1087,16 @@ export async function POST(request: NextRequest) {
           warning: crisisWarning,
         }],
         hasLocation: userLat !== undefined,
-        outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
+        outsideServiceArea: country
+          ? (frenchCityLabel === null)
+          : (cityMatch ? !cityMatch.isInServiceArea : false),
         serviceArea: country
-          ? (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country)
+          ? (frenchCityLabel
+            ? `${frenchCityLabel}, ${SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country}`
+            : (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country))
           : cityLabel + ' metro area',
-        cityId,
-        cityLabel,
+        cityId: country ? null : cityId,
+        cityLabel: country ? frenchCityLabel : cityLabel,
         country,
         locale: isFrench ? 'fr' : 'en',
       });
@@ -1182,7 +1201,7 @@ export async function POST(request: NextRequest) {
     const categoriesWithResources = significantCategories.map(c => {
       let resources;
       if (country) {
-        const frenchResources = getFrenchResourcesForCategory(c.label, country);
+        const frenchResources = getFrenchResourcesForCategory(c.label, country, userLat, userLng);
         resources = frenchResources.length > 0
           ? frenchResources
           : getResourcesForCategory(c.label, cityId, userLat, userLng);
@@ -1228,8 +1247,17 @@ export async function POST(request: NextRequest) {
         ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'})`
         : "Keyword matching (BART API key not configured)");
 
+    // For French countries, determine the French city label
+    let frenchCityLabel: string | null = null;
+    if (country && userLat !== undefined && userLng !== undefined) {
+      const frMatch = findNearestFrenchCity(userLat, userLng, country);
+      if (frMatch) frenchCityLabel = frMatch.city.nameFr;
+    }
+
     const serviceAreaLabel = country
-      ? (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country)
+      ? (frenchCityLabel
+        ? `${frenchCityLabel}, ${SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country}`
+        : (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country))
       : cityLabel + ' metro area';
 
     return NextResponse.json({
@@ -1251,10 +1279,12 @@ export async function POST(request: NextRequest) {
       model: modelLabel,
       classificationSource,
       hasLocation: userLat !== undefined,
-      outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
+      outsideServiceArea: country
+        ? (frenchCityLabel === null)
+        : (cityMatch ? !cityMatch.isInServiceArea : false),
       serviceArea: serviceAreaLabel,
-      cityId,
-      cityLabel,
+      cityId: country ? null : cityId,
+      cityLabel: country ? frenchCityLabel : cityLabel,
       country,
       locale: isFrench ? 'fr' : 'en',
       debug: process.env.NODE_ENV === 'development' ? classificationDebug : undefined,
@@ -1283,7 +1313,9 @@ export async function GET() {
     multiCountry: true,
     supportedCities: SUPPORTED_CITIES.map(c => ({ id: c.id, label: c.label })),
     supportedCountries: SUPPORTED_COUNTRIES.map(c => ({ id: c.id, name: c.name, nameFr: c.nameFr, flag: c.flag })),
+    supportedFrenchCities: FRENCH_CITIES.map(c => ({ id: c.id, name: c.name, nameFr: c.nameFr, countryId: c.countryId })),
     labels: LABELS,
     frenchLabels: FRENCH_BART_LABELS.map(l => l.displayKey),
+    cityLevelResources: FRENCH_CITY_RESOURCES.length,
   });
 }
