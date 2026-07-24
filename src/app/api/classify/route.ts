@@ -6,10 +6,11 @@ import { FRENCH_CITIES, FRENCH_CITY_RESOURCES, findNearestFrenchCity, getResourc
 
 // ─── Configuration ─────────────────────────────────────────
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
-const HF_MODEL = "facebook/bart-large-mnli";                       // English (existing)
-const HF_MODEL_MULTILINGUAL = "facebook/xlm-roberta-large-xnli";   // Multilingual (French support)
+// Switched to smaller, faster models to avoid Vercel 10s timeout on cold start
+// BART-large-MNLI (460M params) was too slow; DeBERTa-v3-base (184M) is 3x faster
+const HF_MODEL = "MoritzLaurer/DeBERTa-v3-base-MNLI";              // English — fast zero-shot NLI
+const HF_MODEL_MULTILINGUAL = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"; // Multilingual — fast, supports French
 // HuggingFace migrated Inference API from api-inference.huggingface.co to router.huggingface.co
-// The old endpoint returns ENOTFOUND on Vercel's network
 const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
 const HF_API_URL_MULTILINGUAL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL_MULTILINGUAL}`;
 
@@ -1259,10 +1260,10 @@ export async function POST(request: NextRequest) {
         resources,
         why: isFrench
           ? (classificationSource === 'bart'
-            ? `Correspondance par analyse sémantique XLM-RoBERTa de votre description.`
+            ? `Correspondance par analyse sémantique mDeBERTa-v3 de votre description.`
             : `Correspondance par analyse de mots-clés. Pour des résultats plus précis, la classification IA nécessite une clé API.`)
           : (classificationSource === 'bart'
-            ? 'Matched by BART-large-MNLI semantic analysis of your description.'
+            ? 'Matched by DeBERTa-v3-base-MNLI semantic analysis of your description.'
             : 'Matched by keyword analysis. For more accurate results, BART AI classification requires an API key.'),
         also: significantCategories.length > 1
           ? (isFrench
@@ -1281,12 +1282,12 @@ export async function POST(request: NextRequest) {
 
     const modelLabel = isFrench
       ? (classificationSource === 'bart'
-        ? "XLM-RoBERTa-large-XNLI (live, multilingue)"
+        ? "mDeBERTa-v3-base-mnli-xnli (live, multilingue)"
         : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
         ? `Correspondance par mots-clés (échec de l'IA: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'inconnu'})`
         : "Correspondance par mots-clés (clé API non configurée)")
       : (classificationSource === 'bart'
-        ? "BART-large-MNLI (live)"
+        ? "DeBERTa-v3-base-MNLI (live)"
         : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
         ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'} | ${classificationDebug.fallbackReason ?? ''})`
         : "Keyword matching (BART API key not configured)");
@@ -1349,9 +1350,9 @@ export async function GET() {
     status: "ok",
     service: "ClearPath AI Classification API",
     version: "5.0.0",
-    model: hasApiKey ? "BART-large-MNLI (en) + XLM-RoBERTa-large-XNLI (fr, multilingue)" : "Keyword matching (fallback)",
+    model: hasApiKey ? "DeBERTa-v3-base-MNLI (en) + mDeBERTa-v3-base-mnli-xnli (fr, multilingue)" : "Keyword matching (fallback)",
     bartAvailable: hasApiKey,
-    classificationMode: hasApiKey ? "BART-large-MNLI (en) + XLM-RoBERTa (fr)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
+    classificationMode: hasApiKey ? "DeBERTa-v3-base-MNLI (en) + mDeBERTa-v3 (fr)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
     crisisDetection: "regex-based (deterministic) — English + French (accent-insensitive)",
     multiCity: true,
     multiCountry: true,
