@@ -1347,7 +1347,7 @@ export async function POST(request: NextRequest) {
       cityLabel: country ? frenchCityLabel : cityLabel,
       country,
       locale: isFrench ? 'fr' : 'en',
-      debug: classificationDebug,
+      debug: process.env.NODE_ENV === 'development' ? classificationDebug : undefined,
     });
   } catch (error) {
     console.error("Classification API error:", error);
