@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { HfInference } from "@huggingface/inference";
 import { HOUSTON_RESOURCES, RESOURCES_BY_CATEGORY, findNearestCity, getResourcesByCategoryForCity, SUPPORTED_CITIES, NATIONAL_RESOURCES, type CityMatch, type SupportedCity } from "@/data/resources";
 import { FRENCH_CRISIS_PATTERNS, COUNTRY_HOTLINES } from "@/data/frenchCrisisResources";
 import { FRENCH_BART_LABELS, COUNTRY_RESOURCES, SUPPORTED_COUNTRIES, getCountryFromIsoCode, type CountryResource } from "@/data/frenchResources";
@@ -533,12 +532,13 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
     },
   };
 
-  // ── ATTEMPT 1: Raw fetch with timeout ──
-  // 8s timeout — Vercel free tier kills functions at 10s, so we must stay under
+  // ── SINGLE ATTEMPT: Raw fetch with aggressive timeout ──
+  // 6s timeout — Vercel free tier kills functions at 10s, so we keep margin
+  // No retry, no SDK attempt — if it fails, fall back to keyword matching immediately
   const fetchStart = Date.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -554,7 +554,7 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
     const elapsed = Date.now() - fetchStart;
     debug.fetchStatus = response.status;
     debug.fetchElapsedMs = elapsed;
-    console.log(`[classify] HF raw fetch responded in ${elapsed}ms with status ${response.status}`);
+    console.log(`[classify] HF fetch responded in ${elapsed}ms with status ${response.status}`);
 
     if (response.ok) {
       const result = await response.json();
@@ -582,46 +582,12 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
       debug.fallbackReason = `Unexpected HF response format: keys=${Object.keys(result).join(',')}`;
       console.warn("[classify] Unexpected HF response format:", debug.fallbackReason);
     } else if (response.status === 503) {
-      // Model is loading — retry ONCE after short wait (keep under Vercel 10s limit)
+      // Model is loading — don't retry (would exceed Vercel timeout). Fall back to keyword.
       const errBody = await response.text();
       debug.hfResponseBody = errBody.substring(0, 500);
-      console.log(`[classify] HF model loading (503), waiting 2s and retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      try {
-        const controller2 = new AbortController();
-        const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
-        const retryResponse = await fetch(apiUrl, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${HF_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-          signal: controller2.signal,
-        });
-        clearTimeout(timeoutId2);
-
-        if (retryResponse.ok) {
-          const retryResult = await retryResponse.json();
-          if (retryResult.labels && retryResult.scores) {
-            console.log(`[classify] Retry succeeded after 503!`);
-            return {
-              results: retryResult.labels.map((label: string, i: number) => ({
-                label: labelToCategory[label] || label,
-                score: retryResult.scores[i],
-                source: 'bart' as const,
-              })),
-              debug,
-            };
-          }
-        }
-        debug.fallbackUsed = true;
-        debug.fallbackReason = `HF API 503 retry failed: ${retryResponse.status}`;
-      } catch (retryErr) {
-        debug.fallbackUsed = true;
-        debug.fallbackReason = `HF API 503 retry error: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`;
-      }
+      debug.fallbackUsed = true;
+      debug.fallbackReason = `HF model loading (503) — fell back to keyword matching to stay under Vercel timeout`;
+      console.warn("[classify] HF model loading (503) — falling back to keyword matching");
     } else {
       const errBody = await response.text();
       debug.hfResponseBody = errBody.substring(0, 500);
@@ -634,71 +600,14 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
     debug.fetchElapsedMs = elapsed;
     const cause = (fetchErr as any)?.cause;
     debug.fetchError = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
-    const causeInfo = cause ? ` (cause: ${cause.code || cause.message || cause.name || 'unknown'}${cause.hostname ? ` hostname=${cause.hostname}` : ''}${cause.address ? ` address=${cause.address}` : ''})` : '';
-    console.error(`[classify] HF raw fetch FAILED after ${elapsed}ms: ${debug.fetchError}${causeInfo}`);
+    const causeInfo = cause ? ` (cause: ${cause.code || cause.message || cause.name || 'unknown'}${cause.hostname ? ` hostname=${cause.hostname}` : ''})` : '';
+    console.error(`[classify] HF fetch FAILED after ${elapsed}ms: ${debug.fetchError}${causeInfo}`);
+    debug.fallbackUsed = true;
+    debug.fallbackReason = `HF fetch failed after ${elapsed}ms: ${debug.fetchError}${causeInfo}`;
   }
 
-  // ── ATTEMPT 2: HfInference SDK (different HTTP stack) ──
-  console.log("[classify] Raw fetch failed or returned bad format — trying HfInference SDK");
-  const sdkStart = Date.now();
-  try {
-    const hf = new HfInference(HF_API_KEY);
-    const result = await hf.zeroShotClassification({
-      model: model,
-      inputs: text,
-      parameters: {
-        candidate_labels: labels,
-        multi_label: true,
-      },
-    });
-
-    const elapsed = Date.now() - sdkStart;
-    console.log(`[classify] HfInference SDK succeeded in ${elapsed}ms`);
-
-    // SDK returns ZeroShotClassificationOutput — array of { label, score }
-    if (result && Array.isArray(result)) {
-      const top3 = result.slice(0, 3).map((r: any) =>
-        `${labelToCategory[r.label] || r.label}: ${(r.score * 100).toFixed(1)}%`
-      );
-      console.log(`[classify] SDK Top 3: ${top3.join(' | ')}`);
-
-      // Update debug to show SDK was used
-      if (!debug.fetchStatus) {
-        debug.fetchStatus = 200; // SDK succeeded
-      }
-      debug.fetchElapsedMs = elapsed;
-      debug.fallbackUsed = false;
-      debug.fallbackReason = null;
-
-      return {
-        results: result.map((r: any) => ({
-          label: labelToCategory[r.label] || r.label,
-          score: r.score,
-          source: 'bart' as const,
-        })),
-        debug,
-      };
-    }
-
-    debug.fallbackUsed = true;
-    debug.fallbackReason = `SDK returned unexpected format: ${typeof result}`;
-    console.warn("[classify] SDK returned unexpected format:", typeof result);
-  } catch (sdkErr) {
-    const elapsed = Date.now() - sdkStart;
-    const cause = (sdkErr as any)?.cause;
-    const sdkMsg = sdkErr instanceof Error ? sdkErr.message : String(sdkErr);
-    const causeInfo = cause ? ` (cause: ${cause.code || cause.message || 'unknown'})` : '';
-    console.error(`[classify] HfInference SDK also FAILED after ${elapsed}ms: ${sdkMsg}${causeInfo}`);
-
-    debug.fallbackUsed = true;
-    if (!debug.fallbackReason) {
-      debug.fallbackReason = `Both raw fetch and SDK failed. Raw: ${debug.fetchError || 'N/A'}. SDK: ${sdkMsg}${causeInfo}`;
-    } else {
-      debug.fallbackReason += ` | SDK also failed: ${sdkMsg}${causeInfo}`;
-    }
-  }
-
-  // ── FINAL FALLBACK: Keyword matching (honest) ──
+  // ── FINAL FALLBACK: Keyword matching (honest, instant) ──
+  // No SDK retry — it doubles the time and Vercel kills at 10s
   return { results: keywordClassify(text), debug };
 }
 
