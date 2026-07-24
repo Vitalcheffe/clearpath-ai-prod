@@ -20,6 +20,7 @@ import {
   User,
   Clock,
 } from 'lucide-react'
+import { useI18n } from '@/i18n'
 
 // ─── TYPES ───────────────────────────────────────────────
 interface Resource {
@@ -111,7 +112,12 @@ function getConfidenceGlow(v: number): string {
   if (v >= 40) return '0 0 16px rgba(245,158,11,0.25)'
   return '0 0 16px rgba(239,68,68,0.25)'
 }
-function getConfidenceLabel(v: number): string {
+function getConfidenceLabel(v: number, isFr: boolean = false): string {
+  if (isFr) {
+    if (v > 70) return 'Élevée'
+    if (v >= 40) return 'Moyenne'
+    return 'Faible'
+  }
   if (v > 70) return 'High'
   if (v >= 40) return 'Moderate'
   return 'Low'
@@ -281,8 +287,23 @@ function CategoryCard({ cat, index }: { cat: Category; index: number }) {
 
 // ─── CRISIS BLOCK ────────────────────────────────────────
 function CrisisBlock({ lines, crisisType }: { lines: CrisisLine[]; crisisType?: string }) {
-  // Title + subtitle tailored to crisis type
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
+  // Title + subtitle tailored to crisis type (bilingual)
   const crisisHeader = (() => {
+    if (isFr) {
+      switch (crisisType) {
+        case 'violence-others':
+          return { title: 'Du soutien est disponible.', subtitle: "Si vous avez des pensées de faire du mal à quelqu'un, de l'aide est disponible maintenant" }
+        case 'domestic':
+          return { title: 'Votre sécurité compte.', subtitle: "Une aide confidentielle est disponible maintenant — vous n'êtes pas seul(e)" }
+        case 'medical':
+          return { title: 'Obtenez de l\'aide maintenant.', subtitle: "Cela ressemble à une urgence médicale — veuillez appeler immédiatement à l'aide" }
+        case 'self-harm':
+        default:
+          return { title: 'Vous n\'êtes pas seul(e).', subtitle: "De l'aide est disponible maintenant — vous n'êtes pas seul(e)" }
+      }
+    }
     switch (crisisType) {
       case 'violence-others':
         return {
@@ -367,14 +388,25 @@ function CrisisBlock({ lines, crisisType }: { lines: CrisisLine[]; crisisType?: 
 function ClarifyPanel({ confidence, clarificationMessage, onClarify }: {
   confidence: number; clarificationMessage: string | null; onClarify: (text: string) => void
 }) {
-  const clarifyOptions = [
-    'Housing or shelter',
-    'Food or basic necessities',
-    'Health or mental health support',
-    'Legal assistance or immigration',
-    'Employment or job training',
-    'Senior services or elderly care',
-  ]
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
+  const clarifyOptions = isFr
+    ? [
+        'Logement ou hébergement',
+        'Nourriture ou produits de première nécessité',
+        'Santé ou soutien en santé mentale',
+        'Aide juridique ou immigration',
+        'Emploi ou formation professionnelle',
+        'Services aux seniors ou soins aux personnes âgées',
+      ]
+    : [
+        'Housing or shelter',
+        'Food or basic necessities',
+        'Health or mental health support',
+        'Legal assistance or immigration',
+        'Employment or job training',
+        'Senior services or elderly care',
+      ]
 
   return (
     <motion.div
@@ -386,8 +418,8 @@ function ClarifyPanel({ confidence, clarificationMessage, onClarify }: {
       <div className="flex items-center gap-4 mb-5">
         <ConfidenceRing value={confidence} size={56} strokeWidth={4} />
         <div>
-          <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Confidence: {confidence}%</p>
-          <p className="text-[16px] font-semibold text-gray-900 leading-snug mt-1.5">Which best describes what you need?</p>
+          <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">{isFr ? `Confiance: ${confidence}%` : `Confidence: ${confidence}%`}</p>
+          <p className="text-[16px] font-semibold text-gray-900 leading-snug mt-1.5">{isFr ? 'Quelle option décrit le mieux votre besoin ?' : 'Which best describes what you need?'}</p>
           {clarificationMessage && (
             <p className="text-[12px] text-gray-400 mt-1">{clarificationMessage}</p>
           )}
@@ -449,6 +481,8 @@ function SuggestionCard({ s, index, onSelect }: {
 
 // ─── LOADING INDICATOR ───────────────────────────────────
 function LoadingIndicator() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -463,7 +497,7 @@ function LoadingIndicator() {
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-        <span className="text-[12px] text-gray-400 ml-2 font-medium">Classifying your request...</span>
+        <span className="text-[12px] text-gray-400 ml-2 font-medium">{isFr ? 'Classification de votre demande...' : 'Classifying your request...'}</span>
       </div>
     </motion.div>
   )
@@ -602,6 +636,8 @@ function QueryResultBlock({ entry, onClarify }: { entry: QueryEntry; onClarify: 
 
 // ─── MAIN ─────────────────────────────────────────────────
 export default function Home() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   // History of queries + results
   const [queries, setQueries] = useState<QueryEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -691,6 +727,9 @@ export default function Home() {
       if (selectedCityId) {
         requestBody.cityId = selectedCityId
       }
+      // Send locale + country to backend for French/multilingual classification
+      requestBody.locale = t.locale
+      // Country will be auto-detected by backend via Vercel IP header
 
       const res = await fetch('/api/classify', {
         method: 'POST',
@@ -707,7 +746,7 @@ export default function Home() {
             isCrisis: false,
             categories: [],
             needsClarification: true,
-            clarificationMessage: 'Something went wrong. Please try again.',
+            clarificationMessage: isFr ? 'Une erreur s\'est produite. Veuillez réessayer.' : 'Something went wrong. Please try again.',
             model: 'error',
           },
           timestamp: new Date(),
@@ -739,7 +778,7 @@ export default function Home() {
           isCrisis: false,
           categories: [],
           needsClarification: true,
-          clarificationMessage: 'A network error occurred. Please try again.',
+          clarificationMessage: isFr ? 'Une erreur réseau s\'est produite. Veuillez réessayer.' : 'A network error occurred. Please try again.',
           model: 'error',
         },
         timestamp: new Date(),
@@ -819,7 +858,7 @@ export default function Home() {
                 onClick={(e) => { e.stopPropagation(); setCityDropdownOpen(!cityDropdownOpen) }}
                 className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-100/60 rounded-md hover:bg-blue-100 transition-colors"
               >
-                Change city
+                {isFr ? 'Changer de ville' : 'Change city'}
                 <ChevronDown className="w-3 h-3" />
               </button>
               {cityDropdownOpen && (
@@ -865,8 +904,14 @@ export default function Home() {
         {!hasQueries && !isLoading && (
           <div className="space-y-3">
             <div className="text-center mb-6">
-              <h1 className="text-[24px] font-bold text-gray-900 tracking-tight">What do you need help with?</h1>
-              <p className="text-[14px] text-gray-400 mt-2">Describe your situation and we&apos;ll match you with verified community resources in {currentCityLabel}.</p>
+              <h1 className="text-[24px] font-bold text-gray-900 tracking-tight">
+                {isFr ? "De quoi avez-vous besoin ?" : "What do you need help with?"}
+              </h1>
+              <p className="text-[14px] text-gray-400 mt-2">
+                {isFr
+                  ? `Décrivez votre situation et nous vous mettrons en relation avec des ressources communautaires vérifiées à ${currentCityLabel}.`
+                  : `Describe your situation and we'll match you with verified community resources in ${currentCityLabel}.`}
+              </p>
             </div>
             {starters.map((s, i) => (
               <SuggestionCard key={s.id} s={s} index={i} onSelect={handleSelectStarter} />
@@ -899,7 +944,7 @@ export default function Home() {
                 value={inputText}
                 onChange={handleTextareaInput}
                 onKeyDown={handleKeyDown}
-                placeholder="Describe what you need help with..."
+                placeholder={isFr ? "Décrivez ce dont vous avez besoin..." : "Describe what you need help with..."}
                 className="flex-1 bg-transparent text-[14px] outline-none text-gray-900 placeholder:text-gray-300 font-medium resize-none min-h-[24px] max-h-[120px] leading-relaxed"
                 rows={1}
               />
@@ -936,7 +981,9 @@ export default function Home() {
           </div>
 
           <p className="text-[10px] text-gray-300 text-center mt-2 font-medium">
-            ClearPath AI · Verified Houston resources · Honest confidence
+            {isFr
+              ? 'ClearPath AI · Ressources vérifiées · Confiance honnête'
+              : 'ClearPath AI · Verified resources · Honest confidence'}
           </p>
         </div>
       </div>
