@@ -1,11 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { HfInference } from "@huggingface/inference";
 import { HOUSTON_RESOURCES, RESOURCES_BY_CATEGORY, findNearestCity, getResourcesByCategoryForCity, SUPPORTED_CITIES, NATIONAL_RESOURCES, type CityMatch, type SupportedCity } from "@/data/resources";
+import { FRENCH_CRISIS_PATTERNS, COUNTRY_HOTLINES } from "@/data/frenchCrisisResources";
+import { FRENCH_BART_LABELS, COUNTRY_RESOURCES, SUPPORTED_COUNTRIES, getCountryFromIsoCode, type CountryResource } from "@/data/frenchResources";
+import { FRENCH_CITIES, FRENCH_CITY_RESOURCES, findNearestFrenchCity, getResourcesForCityByAnyCategory, getCitiesForCountry, type FrenchCity, type FrenchCityResource } from "@/data/frenchCityResources";
 
 // ─── Configuration ─────────────────────────────────────────
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
-const HF_MODEL = "facebook/bart-large-mnli";
+const HF_MODEL = "facebook/bart-large-mnli";                       // English (existing)
+const HF_MODEL_MULTILINGUAL = "facebook/xlm-roberta-large-xnli";   // Multilingual (French support)
 const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+const HF_API_URL_MULTILINGUAL = `https://api-inference.huggingface.co/models/${HF_MODEL_MULTILINGUAL}`;
+
+// ─── French language helpers ──────────────────────────────
+function normalizeFrench(s: string): string {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const FRENCH_CRISIS_REGEX_PATTERNS: Record<string, RegExp[]> = Object.fromEntries(
+  Object.entries(FRENCH_CRISIS_PATTERNS).map(([cat, phrases]) => [
+    cat,
+    phrases.map((p) => new RegExp(escapeRegex(normalizeFrench(p)), "i")),
+  ])
+);
+
+const FRENCH_CANDIDATE_LABELS = FRENCH_BART_LABELS.map((l) => l.label);
+const FRENCH_LABEL_TO_CATEGORY: Record<string, string> = Object.fromEntries(
+  FRENCH_BART_LABELS.map((l) => [l.label, l.displayKey])
+);
+
+function isFrenchInput(text: string): boolean {
+  const hasAccents = /[éèêëàâçùûüôîïœæ]/i.test(text);
+  if (hasAccents) return true;
+
+  const normalized = normalizeFrench(text);
+  const frenchWords = /\b(je|tu|il|elle|nous|vous|ils|elles|mon|ma|mes|notre|votre|leur|le|la|les|une?|des?|du|avec|sans|pour|dans|sur|chez|que|qui|ne|pas|besoin|aide|emploi|logement|nourriture|sante|argent|famille|enfant|merci|bonjour)\b/i.test(normalized);
+  const frenchBigrams = /\b(je |j'|qu'|c'|n'|l'|d'|m'|t'|s'|mon |ma |mes |vous |nous |il |elle |est |sont |avec |pour |dans |sur |une |un |le |la |les )/i.test(text);
+
+  return frenchWords && frenchBigrams;
+}
 
 // ─── Boot-time diagnostic (runs once when serverless function cold-starts) ───
 console.log(`[classify:boot] HF_API_KEY present: ${!!HF_API_KEY}`);
@@ -335,7 +372,11 @@ function haversineMi(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 // ─── Crisis Detection ──────────────────────────────────────
 function detectCrisis(text: string): boolean {
-  return CRISIS_PATTERNS.some(pattern => pattern.test(text));
+  if (CRISIS_PATTERNS.some(pattern => pattern.test(text))) return true;
+  const normalized = normalizeFrench(text);
+  return Object.values(FRENCH_CRISIS_REGEX_PATTERNS).some(patterns =>
+    patterns.some(p => p.test(normalized))
+  );
 }
 
 // ─── Crisis Type Detection ────────────────────────────────
@@ -402,6 +443,14 @@ function detectCrisisType(text: string): CrisisType {
   ];
   if (medicalPatterns.some(p => p.test(text))) return 'medical';
 
+  // ─── French crisis pattern checks (accent-insensitive) ───
+  const normalizedFr = normalizeFrench(text);
+  const frMatch = (cat: string) => FRENCH_CRISIS_REGEX_PATTERNS[cat]?.some(p => p.test(normalizedFr));
+
+  if (frMatch('suicide') || frMatch('selfHarm') || frMatch('overdose')) return 'self-harm';
+  if (frMatch('domesticViolence')) return 'domestic';
+  if (frMatch('childAbuse') || frMatch('sexualAssault') || frMatch('humanTrafficking') || frMatch('hateCrime')) return 'violence-others';
+
   return 'general';
 }
 
@@ -428,14 +477,19 @@ interface DebugInfo {
 }
 
 // ─── Classification via HuggingFace BART-large-MNLI ────────
-async function classifyWithBART(text: string): Promise<{ results: ClassificationResult[]; debug: DebugInfo }> {
+async function classifyWithBART(text: string, useFrench: boolean = false): Promise<{ results: ClassificationResult[]; debug: DebugInfo }> {
   // ── Build debug info as we go ──
+  const apiUrl = useFrench ? HF_API_URL_MULTILINGUAL : HF_API_URL;
+  const model = useFrench ? HF_MODEL_MULTILINGUAL : HF_MODEL;
+  const labels = useFrench ? FRENCH_CANDIDATE_LABELS : CANDIDATE_LABELS;
+  const labelToCategory = useFrench ? FRENCH_LABEL_TO_CATEGORY : LABEL_TO_CATEGORY;
+
   const debug: DebugInfo = {
     keyPresent: !!(HF_API_KEY && HF_API_KEY !== "hf_xxxxx"),
     keyPrefix: HF_API_KEY ? HF_API_KEY.substring(0, 6) + '...' : 'NONE',
     keyLength: HF_API_KEY?.length ?? 0,
     fetchAttempted: false,
-    fetchUrl: HF_API_URL,
+    fetchUrl: apiUrl,
     fetchStatus: null,
     fetchElapsedMs: null,
     fetchError: null,
@@ -456,12 +510,12 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
   debug.fetchAttempted = true;
   console.log(`[classify] Calling HF API`);
   console.log(`[classify] Input text: "${text.substring(0, 80)}${text.length > 80 ? '...' : ''}"`);
-  console.log(`[classify] Candidate labels count: ${CANDIDATE_LABELS.length}`);
+  console.log(`[classify] Candidate labels count: ${labels.length} (model: ${model})`);
 
   const requestBody = {
     inputs: text,
     parameters: {
-      candidate_labels: CANDIDATE_LABELS,
+      candidate_labels: labels,
       multi_label: true,
     },
   };
@@ -473,7 +527,7 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(HF_API_URL, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${HF_API_KEY}`,
@@ -496,13 +550,13 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
       // BART-large-MNLI zero-shot returns { labels: string[], scores: number[] }
       if (result.labels && result.scores) {
         const top3 = result.labels.slice(0, 3).map((l: string, i: number) =>
-          `${LABEL_TO_CATEGORY[l] || l}: ${(result.scores[i] * 100).toFixed(1)}%`
+          `${labelToCategory[l] || l}: ${(result.scores[i] * 100).toFixed(1)}%`
         );
         console.log(`[classify] Top 3: ${top3.join(' | ')}`);
 
         return {
           results: result.labels.map((label: string, i: number) => ({
-            label: LABEL_TO_CATEGORY[label] || label,
+            label: labelToCategory[label] || label,
             score: result.scores[i],
             source: 'bart' as const,
           })),
@@ -524,7 +578,7 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
       try {
         const controller2 = new AbortController();
         const timeoutId2 = setTimeout(() => controller2.abort(), 15000);
-        const retryResponse = await fetch(HF_API_URL, {
+        const retryResponse = await fetch(apiUrl, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${HF_API_KEY}`,
@@ -541,7 +595,7 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
             console.log(`[classify] Retry succeeded after 503!`);
             return {
               results: retryResult.labels.map((label: string, i: number) => ({
-                label: LABEL_TO_CATEGORY[label] || label,
+                label: labelToCategory[label] || label,
                 score: retryResult.scores[i],
                 source: 'bart' as const,
               })),
@@ -577,10 +631,10 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
   try {
     const hf = new HfInference(HF_API_KEY);
     const result = await hf.zeroShotClassification({
-      model: HF_MODEL,
+      model: model,
       inputs: text,
       parameters: {
-        candidate_labels: CANDIDATE_LABELS,
+        candidate_labels: labels,
         multi_label: true,
       },
     });
@@ -591,7 +645,7 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
     // SDK returns ZeroShotClassificationOutput — array of { label, score }
     if (result && Array.isArray(result)) {
       const top3 = result.slice(0, 3).map((r: any) =>
-        `${LABEL_TO_CATEGORY[r.label] || r.label}: ${(r.score * 100).toFixed(1)}%`
+        `${labelToCategory[r.label] || r.label}: ${(r.score * 100).toFixed(1)}%`
       );
       console.log(`[classify] SDK Top 3: ${top3.join(' | ')}`);
 
@@ -605,7 +659,7 @@ async function classifyWithBART(text: string): Promise<{ results: Classification
 
       return {
         results: result.map((r: any) => ({
-          label: LABEL_TO_CATEGORY[r.label] || r.label,
+          label: labelToCategory[r.label] || r.label,
           score: r.score,
           source: 'bart' as const,
         })),
@@ -720,6 +774,159 @@ function getResourcesForCategory(category: string, cityId: string, userLat?: num
   });
 }
 
+// ─── COUNTRY-AWARE CRISIS LINES ────────────────────────────
+function getCrisisLinesForCountry(
+  country: string | null,
+  crisisType: CrisisType,
+  isFrench: boolean
+): { name: string; action: string; call: string }[] {
+  if (!country || !COUNTRY_HOTLINES[country]) {
+    if (crisisType === 'domestic') {
+      return [
+        { name: "National Domestic Violence Hotline", action: "1-800-799-7233 — Confidential, 24/7", call: "1-800-799-7233" },
+        { name: "988 Suicide & Crisis Lifeline", action: "Free. Confidential. 24/7.", call: "988" },
+        { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
+        { name: "911", action: "If you are in immediate danger — call now", call: "911" },
+      ];
+    }
+    if (crisisType === 'medical') {
+      return [
+        { name: "911", action: "Medical emergency — call now", call: "911" },
+        { name: "988 Suicide & Crisis Lifeline", action: "Free. Confidential. 24/7.", call: "988" },
+        { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
+      ];
+    }
+    if (crisisType === 'violence-others') {
+      return [
+        { name: "988 Suicide & Crisis Lifeline", action: "If you're having thoughts of harming others, support is available. Free. Confidential. 24/7.", call: "988" },
+        { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
+        { name: "911", action: "If someone is in immediate danger — call now", call: "911" },
+      ];
+    }
+    return [
+      { name: "988 Suicide & Crisis Lifeline", action: "Free. Confidential. 24/7.", call: "988" },
+      { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
+      { name: "911", action: "Immediate danger — call now", call: "911" },
+    ];
+  }
+
+  const h = COUNTRY_HOTLINES[country];
+  const countryInfo = SUPPORTED_COUNTRIES.find(c => c.id === country);
+  const countryName = countryInfo?.nameFr ?? countryInfo?.name ?? country;
+
+  const labels = isFrench ? {
+    suicide: `Prévention suicide (${countryName})`,
+    suicideAction: `Gratuit • Confidentiel • 24h/24 et 7j/7`,
+    dv: `Violences conjugales (${countryName})`,
+    dvAction: `Écoute confidentielle 24h/24`,
+    medical: `Urgence médicale (${countryName})`,
+    medicalAction: `Appelez maintenant`,
+    police: `Police (${countryName})`,
+    policeAction: `Danger immédiat — appelez maintenant`,
+    general: `Numéro d'urgence (${countryName})`,
+    generalAction: `Appelez maintenant`,
+  } : {
+    suicide: `Suicide Prevention (${countryName})`,
+    suicideAction: `Free • Confidential • 24/7`,
+    dv: `Domestic Violence Hotline (${countryName})`,
+    dvAction: `Confidential support 24/7`,
+    medical: `Medical Emergency (${countryName})`,
+    medicalAction: `Call now`,
+    police: `Police (${countryName})`,
+    policeAction: `Immediate danger — call now`,
+    general: `Emergency Number (${countryName})`,
+    generalAction: `Call now`,
+  };
+
+  if (crisisType === 'domestic') {
+    return [
+      { name: labels.dv, action: labels.dvAction, call: h.domesticViolence },
+      { name: labels.suicide, action: labels.suicideAction, call: h.suicidePrevention },
+      { name: labels.police, action: labels.policeAction, call: h.police },
+    ];
+  }
+  if (crisisType === 'medical') {
+    return [
+      { name: labels.medical, action: labels.medicalAction, call: h.medicalEmergency },
+      { name: labels.suicide, action: labels.suicideAction, call: h.suicidePrevention },
+    ];
+  }
+  if (crisisType === 'violence-others') {
+    return [
+      { name: labels.suicide, action: labels.suicideAction, call: h.suicidePrevention },
+      { name: labels.police, action: labels.policeAction, call: h.police },
+    ];
+  }
+  return [
+    { name: labels.suicide, action: labels.suicideAction, call: h.suicidePrevention },
+    { name: labels.general, action: labels.generalAction, call: h.general },
+    { name: labels.police, action: labels.policeAction, call: h.police },
+  ];
+}
+
+// ─── FRENCH RESOURCES FETCHER (city-level, country-isolated) ──────────
+// CRITICAL: This function fetches resources for a SPECIFIC CITY within a SPECIFIC COUNTRY.
+// A French user will NEVER see Casablanca resources — country isolation is enforced
+// by findNearestFrenchCity() which only searches within the user's country.
+function getFrenchResourcesForCategory(
+  category: string,
+  countryId: string,
+  userLat?: number,
+  userLng?: number
+): Array<{
+  name: string;
+  detail: string;
+  phone?: string;
+  address?: string;
+  hours?: string;
+  eligibility?: string;
+  verified: string;
+  distance: string;
+}> {
+  const countryInfo = SUPPORTED_COUNTRIES.find(c => c.id === countryId);
+  const countryFlag = countryInfo?.flag ?? '📍';
+
+  // Determine which city to use
+  let cityId: string | null = null;
+  let cityLabel: string = countryInfo?.nameFr ?? countryId;
+
+  if (userLat !== undefined && userLng !== undefined) {
+    // Find nearest city WITHIN this country (country isolation)
+    const match = findNearestFrenchCity(userLat, userLng, countryId);
+    if (match) {
+      cityId = match.city.id;
+      cityLabel = match.city.nameFr;
+    }
+  }
+
+  // If no geolocation, use the first city in the country as fallback
+  if (!cityId) {
+    const cities = getCitiesForCountry(countryId);
+    if (cities.length > 0) {
+      cityId = cities[0].id;
+      cityLabel = cities[0].nameFr;
+    }
+  }
+
+  if (!cityId) return [];
+
+  // Get resources for this city + category (accepts EN or FR category names)
+  const resources = getResourcesForCityByAnyCategory(cityId, category);
+
+  if (resources.length === 0) return [];
+
+  return resources.map(r => ({
+    name: r.name,
+    detail: r.description + (r.phone ? ` Appelez le ${r.phone}` : '') + (r.hours ? ` Horaires: ${r.hours}` : ''),
+    phone: r.phone,
+    address: r.address,
+    hours: r.hours,
+    eligibility: r.eligibility,
+    verified: r.verified,
+    distance: `${countryFlag} ${cityLabel}`,
+  }));
+}
+
 // ─── POST Handler ──────────────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
@@ -761,7 +968,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { text, lat, lng, cityId: explicitCityId } = body;
+    const { text, lat, lng, cityId: explicitCityId, country: explicitCountry, locale: clientLocale } = body;
 
     // ─── Input validation ───
     if (typeof text !== 'string' || text.length > 2000) {
@@ -770,6 +977,19 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // ─── Country detection: client param > Vercel IP header > null (US default) ───
+    const ipCountry = request.headers.get('x-vercel-ip-country');
+    let country: string | null = null;
+    if (explicitCountry && SUPPORTED_COUNTRIES.some(c => c.id === explicitCountry)) {
+      country = explicitCountry;
+    } else if (ipCountry) {
+      const detected = getCountryFromIsoCode(ipCountry);
+      if (detected) country = detected.id;
+    }
+
+    // ─── Language detection: client locale > input heuristic ───
+    const isFrench = clientLocale === 'fr' || (!clientLocale && isFrenchInput(text));
 
     const userLat = typeof lat === 'number' && lat >= -90 && lat <= 90 ? lat : undefined;
     const userLng = typeof lng === 'number' && lng >= -180 && lng <= 180 ? lng : undefined;
@@ -806,44 +1026,20 @@ export async function POST(request: NextRequest) {
     if (isCrisis) {
       const crisisType = detectCrisisType(text);
 
-      // Crisis lines tailored to the type of crisis
-      const crisisLines = (() => {
-        const base = [
-          { name: "988 Suicide & Crisis Lifeline", action: "Free. Confidential. 24/7.", call: "988" },
-          { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
-          { name: "911", action: "Immediate danger — call now", call: "911" },
-        ];
+      // Country-aware crisis lines (US default, French countries use verified national hotlines)
+      const crisisLines = getCrisisLinesForCountry(country, crisisType, isFrench);
 
-        if (crisisType === 'violence-others') {
-          return [
-            { name: "988 Suicide & Crisis Lifeline", action: "If you're having thoughts of harming others, support is available. Free. Confidential. 24/7.", call: "988" },
-            { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
-            { name: "911", action: "If someone is in immediate danger — call now", call: "911" },
-          ];
-        }
-
-        if (crisisType === 'domestic') {
-          return [
-            { name: "National Domestic Violence Hotline", action: "1-800-799-7233 — Confidential, 24/7", call: "1-800-799-7233" },
-            { name: "988 Suicide & Crisis Lifeline", action: "Free. Confidential. 24/7.", call: "988" },
-            { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
-            { name: "911", action: "If you are in immediate danger — call now", call: "911" },
-          ];
-        }
-
-        if (crisisType === 'medical') {
-          return [
-            { name: "911", action: "Medical emergency — call now", call: "911" },
-            { name: "988 Suicide & Crisis Lifeline", action: "Free. Confidential. 24/7.", call: "988" },
-            { name: "Crisis Text Line", action: "Text HOME to 741741", call: "Text" },
-          ];
-        }
-
-        return base;
-      })();
-
-      // Crisis message tailored to type
+      // Crisis message tailored to type (localized)
       const crisisWhy = (() => {
+        if (isFrench) {
+          switch (crisisType) {
+            case 'violence-others': return "Si vous avez des pensées de faire du mal à quelqu'un, du soutien est disponible. Vous n'êtes pas seul(e).";
+            case 'domestic': return "Votre sécurité est la priorité absolue en ce moment. De l'aide est disponible.";
+            case 'medical': return "Cela ressemble à une urgence médicale. Veuillez obtenir de l'aide immédiatement.";
+            case 'self-harm': return "Vous n'êtes pas seul(e). De l'aide est disponible maintenant.";
+            default: return "Votre sécurité est la priorité absolue en ce moment.";
+          }
+        }
         switch (crisisType) {
           case 'violence-others': return "If you're having thoughts of harming others, support is available. You don't have to face this alone.";
           case 'domestic': return "Your safety is the top priority right now. Help is available.";
@@ -853,28 +1049,56 @@ export async function POST(request: NextRequest) {
         }
       })();
 
-      const crisisWarning = crisisType === 'violence-others'
-        ? "If someone is in immediate danger, call 911."
-        : "If you are in immediate physical danger, call 911.";
+      // Country-aware crisis warning
+      const emergencyNumber = country && COUNTRY_HOTLINES[country]
+        ? COUNTRY_HOTLINES[country].police
+        : '911';
+      const crisisWarning = isFrench
+        ? (crisisType === 'violence-others'
+            ? `Si quelqu'un est en danger immédiat, appelez le ${emergencyNumber}.`
+            : `Si vous êtes en danger physique immédiat, appelez le ${emergencyNumber}.`)
+        : (crisisType === 'violence-others'
+            ? `If someone is in immediate danger, call ${emergencyNumber}.`
+            : `If you are in immediate physical danger, call ${emergencyNumber}.`);
 
-      const crisisResources = getResourcesForCategory("Crisis Support", cityId, userLat, userLng);
+      // For French countries, return French crisis resources; for US, return US crisis resources
+      const crisisResources = country
+        ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng).length > 0
+          ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng)
+          : getResourcesForCategory("Crisis Support", cityId, userLat, userLng)
+        : getResourcesForCategory("Crisis Support", cityId, userLat, userLng);
+
+      // For French countries, determine the French city label
+      let frenchCityLabel: string | null = null;
+      if (country && userLat !== undefined && userLng !== undefined) {
+        const frMatch = findNearestFrenchCity(userLat, userLng, country);
+        if (frMatch) frenchCityLabel = frMatch.city.nameFr;
+      }
 
       return NextResponse.json({
         isCrisis: true,
         crisisType,
         crisisLines,
         categories: [{
-          label: "Crisis Support",
+          label: isFrench ? "Crise" : "Crisis Support",
           confidence: 99,
           resources: crisisResources,
           why: crisisWhy,
           warning: crisisWarning,
         }],
         hasLocation: userLat !== undefined,
-        outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
-        serviceArea: cityLabel + ' metro area',
-        cityId,
-        cityLabel,
+        outsideServiceArea: country
+          ? (frenchCityLabel === null)
+          : (cityMatch ? !cityMatch.isInServiceArea : false),
+        serviceArea: country
+          ? (frenchCityLabel
+            ? `${frenchCityLabel}, ${SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country}`
+            : (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country))
+          : cityLabel + ' metro area',
+        cityId: country ? null : cityId,
+        cityLabel: country ? frenchCityLabel : cityLabel,
+        country,
+        locale: isFrench ? 'fr' : 'en',
       });
     }
 
@@ -923,7 +1147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Layer 3: AI Classification (BART if available, keyword if not — ALWAYS HONEST)
-    const { results: classifications, debug: classificationDebug } = await classifyWithBART(text);
+    const { results: classifications, debug: classificationDebug } = await classifyWithBART(text, isFrench);
 
     const classificationSource = classifications.length > 0 ? classifications[0].source : 'keyword';
 
@@ -974,47 +1198,95 @@ export async function POST(request: NextRequest) {
       ? CLARIFICATION_QUESTIONS[significantCategories[0].label] || null
       : null;
 
-    const categoriesWithResources = significantCategories.map(c => ({
-      label: c.label,
-      confidence: Math.round(c.score * 100),
-      resources: getResourcesForCategory(c.label, cityId, userLat, userLng),
-      why: classificationSource === 'bart'
-        ? 'Matched by BART-large-MNLI semantic analysis of your description.'
-        : 'Matched by keyword analysis. For more accurate results, BART AI classification requires an API key.',
-      also: significantCategories.length > 1
-        ? `You may also benefit from ${significantCategories.slice(1, 3).map(sc => sc.label).join(" and ")} services.`
-        : undefined,
-      warning: c.score < CLARIFICATION_THRESHOLD
-        ? `${Math.round(c.score * 100)}% confidence — consider providing more detail for a better match`
-        : undefined,
-    }));
+    const categoriesWithResources = significantCategories.map(c => {
+      let resources;
+      if (country) {
+        const frenchResources = getFrenchResourcesForCategory(c.label, country, userLat, userLng);
+        resources = frenchResources.length > 0
+          ? frenchResources
+          : getResourcesForCategory(c.label, cityId, userLat, userLng);
+      } else {
+        resources = getResourcesForCategory(c.label, cityId, userLat, userLng);
+      }
+
+      return {
+        label: c.label,
+        confidence: Math.round(c.score * 100),
+        resources,
+        why: isFrench
+          ? (classificationSource === 'bart'
+            ? `Correspondance par analyse sémantique XLM-RoBERTa de votre description.`
+            : `Correspondance par analyse de mots-clés. Pour des résultats plus précis, la classification IA nécessite une clé API.`)
+          : (classificationSource === 'bart'
+            ? 'Matched by BART-large-MNLI semantic analysis of your description.'
+            : 'Matched by keyword analysis. For more accurate results, BART AI classification requires an API key.'),
+        also: significantCategories.length > 1
+          ? (isFrench
+            ? `Vous pourriez aussi bénéficier des services : ${significantCategories.slice(1, 3).map(sc => sc.label).join(" et ")}.`
+            : `You may also benefit from ${significantCategories.slice(1, 3).map(sc => sc.label).join(" and ")} services.`)
+          : undefined,
+        warning: c.score < CLARIFICATION_THRESHOLD
+          ? (isFrench
+            ? `${Math.round(c.score * 100)}% de confiance — envisagez de donner plus de détails pour une meilleure correspondance`
+            : `${Math.round(c.score * 100)}% confidence — consider providing more detail for a better match`)
+          : undefined,
+      };
+    });
 
     const noResults = categoriesWithResources.length === 0;
 
-    const modelLabel = classificationSource === 'bart'
-      ? "BART-large-MNLI (live)"
-      : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
-      ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'})`
-      : "Keyword matching (BART API key not configured)";
+    const modelLabel = isFrench
+      ? (classificationSource === 'bart'
+        ? "XLM-RoBERTa-large-XNLI (live, multilingue)"
+        : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
+        ? `Correspondance par mots-clés (échec de l'IA: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'inconnu'})`
+        : "Correspondance par mots-clés (clé API non configurée)")
+      : (classificationSource === 'bart'
+        ? "BART-large-MNLI (live)"
+        : classificationDebug.fallbackUsed && classificationDebug.fetchAttempted
+        ? `Keyword matching (BART call failed: ${classificationDebug.fetchStatus ?? classificationDebug.fetchError ?? 'unknown'})`
+        : "Keyword matching (BART API key not configured)");
+
+    // For French countries, determine the French city label
+    let frenchCityLabel: string | null = null;
+    if (country && userLat !== undefined && userLng !== undefined) {
+      const frMatch = findNearestFrenchCity(userLat, userLng, country);
+      if (frMatch) frenchCityLabel = frMatch.city.nameFr;
+    }
+
+    const serviceAreaLabel = country
+      ? (frenchCityLabel
+        ? `${frenchCityLabel}, ${SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country}`
+        : (SUPPORTED_COUNTRIES.find(c => c.id === country)?.nameFr ?? country))
+      : cityLabel + ' metro area';
 
     return NextResponse.json({
       isCrisis: false,
       categories: categoriesWithResources,
       needsClarification: needsClarification || noResults,
-      clarificationMessage: noResults
-        ? "We couldn't match your description to a specific category. Could you tell us more about what you need help with?"
-        : needsClarification
-        ? `Your top match scored below 70% confidence — help us help you by answering a quick question`
-        : null,
+      clarificationMessage: isFrench
+        ? (noResults
+          ? "Nous n'avons pas pu correspondre votre description à une catégorie spécifique. Pouvez-vous nous en dire plus sur ce dont vous avez besoin ?"
+          : needsClarification
+          ? `Votre meilleure correspondance est en dessous de 70% de confiance — aidez-nous en répondant à une question rapide`
+          : null)
+        : (noResults
+          ? "We couldn't match your description to a specific category. Could you tell us more about what you need help with?"
+          : needsClarification
+          ? `Your top match scored below 70% confidence — help us help you by answering a quick question`
+          : null),
       clarificationQuestions,
       model: modelLabel,
       classificationSource,
       hasLocation: userLat !== undefined,
-      outsideServiceArea: cityMatch ? !cityMatch.isInServiceArea : false,
-      serviceArea: cityLabel + ' metro area',
-      cityId,
-      cityLabel,
-      // ── DEBUG: Full transparency into classification pipeline ──
+      outsideServiceArea: country
+        ? (frenchCityLabel === null)
+        : (cityMatch ? !cityMatch.isInServiceArea : false),
+      serviceArea: serviceAreaLabel,
+      cityId: country ? null : cityId,
+      cityLabel: country ? frenchCityLabel : cityLabel,
+      country,
+      locale: isFrench ? 'fr' : 'en',
       debug: process.env.NODE_ENV === 'development' ? classificationDebug : undefined,
     });
   } catch (error) {
@@ -1032,13 +1304,18 @@ export async function GET() {
   return NextResponse.json({
     status: "ok",
     service: "ClearPath AI Classification API",
-    version: "4.0.0",
-    model: "facebook/bart-large-mnli",
+    version: "5.0.0",
+    model: hasApiKey ? "BART-large-MNLI (en) + XLM-RoBERTa-large-XNLI (fr, multilingue)" : "Keyword matching (fallback)",
     bartAvailable: hasApiKey,
-    classificationMode: hasApiKey ? "BART-large-MNLI (live)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
-    crisisDetection: "regex-based (deterministic)",
+    classificationMode: hasApiKey ? "BART-large-MNLI (en) + XLM-RoBERTa (fr)" : "Keyword matching (fallback — set HUGGINGFACE_API_KEY)",
+    crisisDetection: "regex-based (deterministic) — English + French (accent-insensitive)",
     multiCity: true,
+    multiCountry: true,
     supportedCities: SUPPORTED_CITIES.map(c => ({ id: c.id, label: c.label })),
+    supportedCountries: SUPPORTED_COUNTRIES.map(c => ({ id: c.id, name: c.name, nameFr: c.nameFr, flag: c.flag })),
+    supportedFrenchCities: FRENCH_CITIES.map(c => ({ id: c.id, name: c.name, nameFr: c.nameFr, countryId: c.countryId })),
     labels: LABELS,
+    frenchLabels: FRENCH_BART_LABELS.map(l => l.displayKey),
+    cityLevelResources: FRENCH_CITY_RESOURCES.length,
   });
 }

@@ -56,6 +56,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 // ─── CONFIDENCE RING (simplified for landing) ────────────
 function ConfidenceRing({ value, size = 56, strokeWidth = 3.5 }: { value: number; size?: number; strokeWidth?: number }) {
@@ -750,6 +751,7 @@ const demoMessages: ChatMessage[] = [
 
 // ─── MAIN PAGE ───────────────────────────────────────────
 export default function LandingPage() {
+  const { t } = useI18n()
   const [activeDemoStep, setActiveDemoStep] = useState(0)
 
   useEffect(() => {
@@ -793,10 +795,19 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-gray-900"
               >
-                When it matters most,{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
-                  honesty is the safest answer.
-                </span>
+                {t.locale === 'fr' ? (
+                  <>Quand ça compte le plus,{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                      l'honnêteté est la réponse la plus sûre.
+                    </span>
+                  </>
+                ) : (
+                  <>When it matters most,{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                      honesty is the safest answer.
+                    </span>
+                  </>
+                )}
               </motion.h1>
 
               {/* Subheadline */}
@@ -806,8 +817,15 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.35 }}
                 className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl"
               >
-                ClearPath AI connects you with verified community resources — showing honest confidence instead of hiding uncertainty.{' '}
-                <span className="font-semibold text-gray-700">Classified, not generated.</span>
+                {t.locale === 'fr' ? (
+                  <>ClearPath AI vous connecte avec des ressources communautaires vérifiées — affichant une honnêteté calibrée au lieu de cacher l'incertitude.{' '}
+                    <span className="font-semibold text-gray-700">Classifiées, non générées.</span>
+                  </>
+                ) : (
+                  <>ClearPath AI connects you with verified community resources — showing honest confidence instead of hiding uncertainty.{' '}
+                    <span className="font-semibold text-gray-700">Classified, not generated.</span>
+                  </>
+                )}
               </motion.p>
 
               {/* CTA buttons */}
@@ -821,14 +839,14 @@ export default function LandingPage() {
                   href="/app"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 text-[15px] font-semibold text-white rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-[0.97]"
                 >
-                  Try the Demo
+                  {t.locale === 'fr' ? 'Essayer la démo' : 'Try the Demo'}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/#how-it-works"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 text-[15px] font-semibold text-gray-700 rounded-2xl border border-gray-200 bg-white/60 backdrop-blur-sm hover:bg-white hover:border-gray-300 hover:shadow-md transition-all"
                 >
-                  See How It Works
+                  {t.locale === 'fr' ? 'Voir comment ça marche' : 'See How It Works'}
                   <ChevronDown className="w-4 h-4" />
                 </Link>
               </motion.div>
@@ -1518,7 +1536,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-3">
                 <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-white/60 border border-gray-200/60">
                   <MessageCircle className="w-4 h-4 text-gray-300" />
-                  <span className="text-[13px] text-gray-300">Describe your situation...</span>
+                  <span className="text-[13px] text-gray-300">{t.locale === 'fr' ? 'Décrivez votre situation...' : 'Describe your situation...'}</span>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 flex items-center justify-center shadow-md shadow-blue-500/20">
                   <Send className="w-4 h-4 text-white" />
@@ -2277,7 +2295,9 @@ export default function LandingPage() {
                 <span className="text-[15px] font-bold tracking-tight text-white">ClearPath AI</span>
               </div>
               <p className="text-[13px] text-gray-400 leading-relaxed max-w-xs">
-                When it matters most, honesty is the safest answer. Connecting people with verified community resources through honest confidence.
+                {t.locale === 'fr'
+                  ? "Quand ça compte le plus, l'honnêteté est la réponse la plus sûre. Connecter les gens avec des ressources communautaires vérifiées grâce à une confiance honnête."
+                  : "When it matters most, honesty is the safest answer. Connecting people with verified community resources through honest confidence."}
               </p>
               <p className="text-[11px] text-gray-500 font-medium">
                 Built for USAII Global AI Hackathon 2026
