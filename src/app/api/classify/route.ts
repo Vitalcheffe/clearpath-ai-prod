@@ -573,7 +573,7 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
       const result = await response.json();
       debug.hfResponseBody = JSON.stringify(result).substring(0, 500);
 
-      // BART-large-MNLI zero-shot returns { labels: string[], scores: number[] }
+      // Format 1: BART-large-MNLI returns { labels: string[], scores: number[] }
       if (result.labels && result.scores) {
         const top3 = result.labels.slice(0, 3).map((l: string, i: number) =>
           `${labelToCategory[l] || l}: ${(result.scores[i] * 100).toFixed(1)}%`
@@ -584,6 +584,23 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
           results: result.labels.map((label: string, i: number) => ({
             label: labelToCategory[label] || label,
             score: result.scores[i],
+            source: 'bart' as const,
+          })),
+          debug,
+        };
+      }
+
+      // Format 2: mDeBERTa-v3 returns [{ label: string, score: number }, ...] (array)
+      if (Array.isArray(result) && result.length > 0 && result[0].label && typeof result[0].score === 'number') {
+        const top3 = result.slice(0, 3).map((r: any) =>
+          `${labelToCategory[r.label] || r.label}: ${(r.score * 100).toFixed(1)}%`
+        );
+        console.log(`[classify] Top 3 (array format): ${top3.join(' | ')}`);
+
+        return {
+          results: result.map((r: any) => ({
+            label: labelToCategory[r.label] || r.label,
+            score: r.score,
             source: 'bart' as const,
           })),
           debug,
