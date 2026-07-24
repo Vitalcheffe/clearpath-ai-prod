@@ -1012,14 +1012,22 @@ export async function POST(request: NextRequest) {
       if (detected) country = detected.id;
     }
 
-    // Coordinate-based country detection: if lat/lng are near any French city (within 200km), assign that country
+    // Coordinate-based country detection: find the NEAREST French city (within 150km)
+    // and assign that city's country. We use nearest (not first-within-threshold)
+    // to handle border cases like Geneva/Lyon (108km apart) correctly.
     if (!country && userLat !== undefined && userLng !== undefined) {
+      let nearestDist = Infinity;
+      let nearestCountry: string | null = null;
       for (const city of FRENCH_CITIES) {
         const dist = haversineKmLocal(userLat, userLng, city.lat, city.lng);
-        if (dist <= 200) {
-          country = city.countryId;
-          break;
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearestCountry = city.countryId;
         }
+      }
+      // Only assign if within 150km of a French city (avoids false positives for US users)
+      if (nearestCountry && nearestDist <= 150) {
+        country = nearestCountry;
       }
     }
 
