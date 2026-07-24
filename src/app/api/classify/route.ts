@@ -928,8 +928,167 @@ function getFrenchResourcesForCategory(
     hours: r.hours,
     eligibility: r.eligibility,
     verified: r.verified,
-    distance: `${countryFlag} ${cityLabel}`,
+    distance: countryFlag + ' ' + cityLabel,
   }));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CASCADE LOCATION RESOLUTION — strict waterfall: country → city → resources
+// ════════════════════════════════════════════════════════════════════════════
+// LOGIC:
+//   Step 1: Detect COUNTRY (lock to one country, disable all others)
+//     - If country X detected → ONLY country X is active, all others DISABLED
+//     - Sources: explicit param > Vercel IP header > coordinates > locale
+//
+//   Step 2: Detect CITY within that country ONLY (never cross-country)
+//     - If city Y detected in country X → ONLY city Y is active
+//     - All other cities in country X are DISABLED
+//     - All cities in other countries are DISABLED
+//
+//   Step 3: Fetch resources for THAT city ONLY
+//     - Resources from any other city = DISABLED (never shown)
+//     - Resources from any other country = DISABLED (never shown)
+//
+// GUARANTEES:
+//   - A Casablanca user NEVER sees Rabat resources
+//   - A Casablanca user NEVER sees Paris resources
+//   - A Paris user NEVER sees Casablanca resources
+//   - A Houston user NEVER sees any French resources
+// ════════════════════════════════════════════════════════════════════════════
+
+interface ResolvedLocation {
+  country: string | null;          // null = US default
+  countryName: string;
+  countryNameFr: string;
+  cityId: string;
+  cityLabel: string;               // Display name (e.g. "Casablanca" or "Houston, TX")
+  cityMatch: CityMatch | null;     // For US cities (has isInServiceArea)
+  frenchCityMatch: { city: FrenchCity; distanceKm: number; isInServiceArea: boolean } | null;
+  detectionSource: string;         // How location was determined (for debugging)
+  isFrenchCountry: boolean;        // true if country is a French-speaking country
+}
+
+function resolveLocation(
+  explicitCountry: string | undefined,
+  explicitCityId: string | undefined,
+  clientLocale: string | undefined,
+  isFrench: boolean,
+  userLat: number | undefined,
+  userLng: number | undefined,
+  ipCountry: string | null
+): ResolvedLocation {
+  // ═══ STEP 1: COUNTRY DETECTION (cascade) ═══
+  let country: string | null = null;
+  let detectionSource = '';
+
+  // 1a. Explicit country param from client (highest priority)
+  if (explicitCountry && SUPPORTED_COUNTRIES.some(c => c.id === explicitCountry)) {
+    country = explicitCountry;
+    detectionSource = 'explicit-param';
+  }
+  // 1b. Vercel IP country header (production)
+  else if (ipCountry) {
+    const detected = getCountryFromIsoCode(ipCountry);
+    if (detected) {
+      country = detected.id;
+      detectionSource = 'ip-header';
+    }
+  }
+
+  // 1c. Coordinate-based detection (find NEAREST French city within 150km)
+  //     CRITICAL: uses NEAREST, not first-within-threshold, to handle borders
+  if (!country && userLat !== undefined && userLng !== undefined) {
+    let nearestDist = Infinity;
+    let nearestCountryId: string | null = null;
+    for (const city of FRENCH_CITIES) {
+      const dist = haversineKmLocal(userLat, userLng, city.lat, city.lng);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearestCountryId = city.countryId;
+      }
+    }
+    if (nearestCountryId && nearestDist <= 150) {
+      country = nearestCountryId;
+      detectionSource = `coordinates (${nearestDist.toFixed(0)}km from nearest city)`;
+    }
+  }
+
+  // 1d. If French input but no country → default to France
+  if (!country && isFrench) {
+    country = 'france';
+    detectionSource = 'french-locale-default';
+  }
+
+  // 1e. If still no country → null = US default
+  if (!country) {
+    detectionSource = 'us-default';
+  }
+
+  // ═══ STEP 2: CITY DETECTION (country-isolated) ═══
+  // CRITICAL: Only search for cities WITHIN the detected country
+  // A Casablanca user will NEVER match to Rabat or Paris
+  let cityId: string = 'houston';
+  let cityLabel = 'Houston, TX';
+  let cityMatch: CityMatch | null = null;
+  let frenchCityMatch: ResolvedLocation['frenchCityMatch'] = null;
+
+  if (country) {
+    // ─── French-speaking country: use French city resolution ───
+    // ONLY searches within this country (country isolation enforced by findNearestFrenchCity)
+    const cities = getCitiesForCountry(country);
+    if (cities.length === 0) {
+      // Should never happen, but handle gracefully
+      cityId = 'houston';
+      cityLabel = 'Houston, TX';
+    } else if (userLat !== undefined && userLng !== undefined) {
+      // Find nearest city WITHIN this country
+      const frMatch = findNearestFrenchCity(userLat, userLng, country);
+      if (frMatch) {
+        cityId = frMatch.city.id;
+        cityLabel = frMatch.city.nameFr;
+        frenchCityMatch = frMatch;
+      } else {
+        // No match within country — use first city as fallback
+        cityId = cities[0].id;
+        cityLabel = cities[0].nameFr;
+      }
+    } else {
+      // No geolocation — use capital/first city as fallback
+      cityId = cities[0].id;
+      cityLabel = cities[0].nameFr;
+    }
+  } else {
+    // ─── US (null country): use US city resolution ───
+    if (explicitCityId && SUPPORTED_CITIES.some(c => c.id === explicitCityId)) {
+      cityId = explicitCityId;
+      const city = SUPPORTED_CITIES.find(c => c.id === cityId)!;
+      cityLabel = city.label;
+    } else if (userLat !== undefined && userLng !== undefined) {
+      cityMatch = findNearestCity(userLat, userLng);
+      cityId = cityMatch.city.id;
+      cityLabel = cityMatch.city.label;
+    }
+    // Default: Houston (already set)
+  }
+
+  // Get country display names
+  const countryInfo = country
+    ? SUPPORTED_COUNTRIES.find(c => c.id === country)
+    : null;
+  const countryName = countryInfo?.name ?? 'United States';
+  const countryNameFr = countryInfo?.nameFr ?? 'États-Unis';
+
+  return {
+    country,
+    countryName,
+    countryNameFr,
+    cityId,
+    cityLabel,
+    cityMatch,
+    frenchCityMatch,
+    detectionSource,
+    isFrenchCountry: country !== null,
+  };
 }
 
 // ─── POST Handler ──────────────────────────────────────────
@@ -989,88 +1148,25 @@ export async function POST(request: NextRequest) {
     // ─── Language detection: client locale > input heuristic ───
     const isFrench = clientLocale === 'fr' || (!clientLocale && isFrenchInput(text));
 
-    // ─── Country detection (multi-layer): ───
-    //   1. Explicit country param from client
-    //   2. Vercel x-vercel-ip-country header (production)
-    //   3. Coordinate-based detection (lat/lng near a French city → that country)
-    //   4. If isFrench and still unknown → default to "france" (largest FR population)
-    //   5. null = US default
+    // ═══ CASCADE LOCATION RESOLUTION ═══
+    // Strict waterfall: country → city → resources
+    // Each level LOCKS the next: country X → only cities in X → only resources in that city
     const ipCountry = request.headers.get('x-vercel-ip-country');
-    let country: string | null = null;
-    if (explicitCountry && SUPPORTED_COUNTRIES.some(c => c.id === explicitCountry)) {
-      country = explicitCountry;
-    } else if (ipCountry) {
-      const detected = getCountryFromIsoCode(ipCountry);
-      if (detected) country = detected.id;
-    }
+    const location = resolveLocation(
+      explicitCountry,
+      explicitCityId,
+      clientLocale,
+      isFrench,
+      userLat,
+      userLng,
+      ipCountry
+    );
 
-    // Coordinate-based country detection: find the NEAREST French city (within 150km)
-    // and assign that city's country. We use nearest (not first-within-threshold)
-    // to handle border cases like Geneva/Lyon (108km apart) correctly.
-    if (!country && userLat !== undefined && userLng !== undefined) {
-      let nearestDist = Infinity;
-      let nearestCountry: string | null = null;
-      for (const city of FRENCH_CITIES) {
-        const dist = haversineKmLocal(userLat, userLng, city.lat, city.lng);
-        if (dist < nearestDist) {
-          nearestDist = dist;
-          nearestCountry = city.countryId;
-        }
-      }
-      // Only assign if within 150km of a French city (avoids false positives for US users)
-      if (nearestCountry && nearestDist <= 150) {
-        country = nearestCountry;
-      }
-    }
-
-    // If input is French but country still unknown, default to France
-    if (!country && isFrench) {
-      country = 'france';
-    }
-
-    // ─── Multi-city resolution ───
-    // For French countries: use findNearestFrenchCity (country-isolated)
-    // For US/null: use existing city logic
-    let cityId: string = 'houston';
-    let cityMatch: CityMatch | null = null;
-    let cityLabel = 'Houston, TX';
-
-    if (country) {
-      // French-speaking country — use French city resolution (country-isolated)
-      if (userLat !== undefined && userLng !== undefined) {
-        const frMatch = findNearestFrenchCity(userLat, userLng, country);
-        if (frMatch) {
-          cityId = frMatch.city.id;
-          cityLabel = frMatch.city.nameFr;
-          cityMatch = { city: frMatch.city as any, isInServiceArea: frMatch.isInServiceArea, distanceMi: frMatch.distanceKm * 0.621371 } as any;
-        } else {
-          // No geolocation match — use first city in country
-          const cities = getCitiesForCountry(country);
-          if (cities.length > 0) {
-            cityId = cities[0].id;
-            cityLabel = cities[0].nameFr;
-          }
-        }
-      } else {
-        // No geolocation — use first city in country
-        const cities = getCitiesForCountry(country);
-        if (cities.length > 0) {
-          cityId = cities[0].id;
-          cityLabel = cities[0].nameFr;
-        }
-      }
-    } else if (explicitCityId && SUPPORTED_CITIES.some(c => c.id === explicitCityId)) {
-      // US: user explicitly selected a city
-      cityId = explicitCityId;
-      const city = SUPPORTED_CITIES.find(c => c.id === cityId)!;
-      cityLabel = city.label;
-    } else if (userLat !== undefined && userLng !== undefined) {
-      // US: auto-detect from geolocation
-      cityMatch = findNearestCity(userLat, userLng);
-      cityId = cityMatch.city.id;
-      cityLabel = cityMatch.city.label;
-    }
-    // Default: Houston (already set)
+    // Extract resolved values for use in classification
+    const country = location.country;
+    const cityId = location.cityId;
+    const cityLabel = location.cityLabel;
+    const cityMatch = location.cityMatch;
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       return NextResponse.json(
