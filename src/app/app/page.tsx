@@ -735,7 +735,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(12000), // 12s client timeout — never hang
+        signal: AbortSignal.timeout(15000), // 15s client timeout — Vercel kills at 10s so 15s is safe
       })
 
       if (!res.ok) {

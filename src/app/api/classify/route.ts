@@ -544,12 +544,12 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
   };
 
   // ── SINGLE ATTEMPT: Raw fetch with aggressive timeout ──
-  // 6s timeout — Vercel free tier kills functions at 10s, so we keep margin
-  // No retry, no SDK attempt — if it fails, fall back to keyword matching immediately
+  // 9s timeout — Vercel free tier kills functions at 10s, so 9s is the max safe value
+  // BART-large-MNLI cold start can take 5-8s; XLM-RoBERTa can take 6-9s
   const fetchStart = Date.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 9000);
 
     const response = await fetch(apiUrl, {
       method: "POST",
