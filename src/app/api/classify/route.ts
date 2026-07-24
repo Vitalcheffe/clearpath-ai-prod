@@ -496,8 +496,14 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
   // ── Build debug info as we go ──
   const apiUrl = useFrench ? HF_API_URL_MULTILINGUAL : HF_API_URL;
   const model = useFrench ? HF_MODEL_MULTILINGUAL : HF_MODEL;
-  const labels = useFrench ? FRENCH_CANDIDATE_LABELS : CANDIDATE_LABELS;
-  const labelToCategory = useFrench ? FRENCH_LABEL_TO_CATEGORY : LABEL_TO_CATEGORY;
+  // CRITICAL: Always use ENGLISH descriptive labels for mDeBERTa
+  // mDeBERTa was trained on XNLI (English labels). Using French labels
+  // produces poor results (all categories at 100%, wrong classifications).
+  // The English labels are descriptive enough for the model to match
+  // French input correctly — mDeBERTa is multilingual and understands
+  // French input, but needs English labels for accurate NLI matching.
+  const labels = CANDIDATE_LABELS;
+  const labelToCategory = LABEL_TO_CATEGORY;
 
   const debug: DebugInfo = {
     keyPresent: !!(HF_API_KEY && HF_API_KEY !== "hf_xxxxx"),
