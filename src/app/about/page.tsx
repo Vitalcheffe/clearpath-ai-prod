@@ -73,6 +73,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -184,6 +185,8 @@ function ComparisonCell({ type, text }: { type: 'yes' | 'no' | 'partial'; text: 
 }
 
 export default function AboutPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
 
   return (
@@ -206,16 +209,33 @@ export default function AboutPage() {
               </motion.div>
 
               <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
-                Building AI that{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
-                  tells the truth
-                </span>
+                {isFr ? (
+                  <>Construire une IA qui{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                      dit la vérité
+                    </span>
+                  </>
+                ) : (
+                  <>Building AI that{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                      tells the truth
+                    </span>
+                  </>
+                )}
               </motion.h1>
 
               <motion.p variants={fadeInUp} className="text-lg sm:text-xl text-gray-500 mt-6 max-w-3xl mx-auto leading-relaxed">
-                When people are in crisis, they deserve honest answers — not confident-sounding hallucinations.
-                ClearPath AI is built on a simple principle: <span className="font-semibold text-gray-700">classified, not generated.</span>{' '}
-                Every result shows its confidence. Every gap triggers a human handoff. Every decision is auditable.
+                {isFr ? (
+                  <>Quand les gens sont en crise, ils méritent des réponses honnêtes — pas des hallucinations rassurantes.
+                    ClearPath AI repose sur un principe simple : <span className="font-semibold text-gray-700">classifié, non généré.</span>{' '}
+                    Chaque résultat affiche son niveau de confiance. Chaque incertitude déclenche un relais humain. Chaque décision est auditable.
+                  </>
+                ) : (
+                  <>When people are in crisis, they deserve honest answers — not confident-sounding hallucinations.
+                    ClearPath AI is built on a simple principle: <span className="font-semibold text-gray-700">classified, not generated.</span>{' '}
+                    Every result shows its confidence. Every gap triggers a human handoff. Every decision is auditable.
+                  </>
+                )}
               </motion.p>
 
               {/* Animated Hero Stats */}

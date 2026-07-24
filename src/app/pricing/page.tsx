@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 // ─── ANIMATION VARIANTS ──────────────────────────────────
 const staggerContainer = {
@@ -130,6 +131,8 @@ const comparison = [
 ]
 
 export default function PricingPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       <Navbar />
@@ -145,7 +148,7 @@ export default function PricingPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 mb-6"
             >
               <Gift className="w-4 h-4 text-emerald-600" />
-              <span className="text-[12px] font-bold text-emerald-700 uppercase tracking-wider">Free, forever</span>
+              <span className="text-[12px] font-bold text-emerald-700 uppercase tracking-wider">{isFr ? 'Gratuit, pour toujours' : 'Free, forever'}</span>
             </motion.div>
 
             <motion.h1
@@ -154,7 +157,7 @@ export default function PricingPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900"
             >
-              There is no pricing page.
+              {isFr ? "Il n'y a pas de page de tarifs." : 'There is no pricing page.'}
             </motion.h1>
 
             <motion.p
@@ -163,7 +166,11 @@ export default function PricingPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg sm:text-xl text-gray-500 mt-6 max-w-2xl mx-auto leading-relaxed"
             >
-              ClearPath AI is free. There is no Pro tier, no Enterprise plan, no API subscription, no sales team. We are two high school students building this for the USAII Global AI Hackathon 2026 — not a commercial product.
+              {isFr ? (
+                'ClearPath AI est gratuit. Il n\'y a pas de formule Pro, pas de plan Entreprise, pas d\'abonnement API, pas d\'équipe commerciale. Nous sommes deux lycéens qui construisons ce projet pour le USAII Global AI Hackathon 2026 — pas un produit commercial.'
+              ) : (
+                'ClearPath AI is free. There is no Pro tier, no Enterprise plan, no API subscription, no sales team. We are two high school students building this for the USAII Global AI Hackathon 2026 — not a commercial product.'
+              )}
             </motion.p>
 
             <motion.div

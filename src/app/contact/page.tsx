@@ -72,6 +72,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 /* ═══ Animation Variants ═══ */
 const fadeInUp = {
@@ -452,6 +453,8 @@ const communityGuidelines = [
 const partnerTiers: any[] = []
 
 export default function ContactPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -602,7 +605,7 @@ export default function ContactPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold bg-emerald-50/80 text-emerald-700 border border-emerald-100/60 mb-6"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                We&apos;re Here to Help
+                {isFr ? 'Nous sommes là pour vous aider' : 'We\'re Here to Help'}
               </motion.div>
 
               {/* Headline */}
@@ -610,10 +613,19 @@ export default function ContactPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight"
               >
-                Get in{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
-                  Touch
-                </span>
+                {isFr ? (
+                  <>Contactez{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                      ClearPath
+                    </span>
+                  </>
+                ) : (
+                  <>Get in{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                      Touch
+                    </span>
+                  </>
+                )}
               </motion.h1>
 
               {/* Subtitle */}
@@ -621,9 +633,13 @@ export default function ContactPage() {
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-gray-500 mt-6 max-w-3xl mx-auto leading-relaxed"
               >
-                Whether you need technical support, want to report an issue, explore a partnership, or are
-                in crisis — we&apos;re always here. Every message is read by a real person. Every crisis
-                is routed to professional help immediately.
+                {isFr ? (
+                  <>Que vous ayez besoin d'assistance technique, souhaitiez signaler un problème, explorer un partenariat, ou que vous soyez en crise — nous sommes toujours là. Chaque message est lu par une personne réelle. Chaque crise est orientée vers une aide professionnelle immédiatement.</>
+                ) : (
+                  <>Whether you need technical support, want to report an issue, explore a partnership, or are
+                    in crisis — we&apos;re always here. Every message is read by a real person. Every crisis
+                    is routed to professional help immediately.</>
+                )}
               </motion.p>
 
               {/* Quick Stats */}

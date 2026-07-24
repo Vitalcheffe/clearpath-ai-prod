@@ -99,6 +99,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 // ─── ANIMATION VARIANTS ──────────────────────────────────
 const fadeInUp = {
@@ -813,6 +814,8 @@ function PipelineVisual() {
 
 // ─── MAIN PAGE ───────────────────────────────────────────
 export default function HowItWorksPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   const [activeScenario, setActiveScenario] = useState<string>('multi-need')
 
   return (
@@ -839,16 +842,32 @@ export default function HowItWorksPage() {
 
               {/* Headline */}
               <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
-                How ClearPath AI{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
-                  Works
-                </span>
+                {isFr ? (
+                  <>Comment ClearPath AI{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                      fonctionne
+                    </span>
+                  </>
+                ) : (
+                  <>How ClearPath AI{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                      Works
+                    </span>
+                  </>
+                )}
               </motion.h1>
 
               {/* Subtitle */}
               <motion.p variants={fadeInUp} className="text-lg sm:text-xl text-gray-500 mt-6 max-w-3xl mx-auto leading-relaxed">
-                A 6-layer transparency pipeline that classifies — never generates — community resources. 
-                <span className="font-semibold text-gray-700"> Every result shows its confidence. Every gap triggers a human handoff. Every decision is auditable.</span>
+                {isFr ? (
+                  <>Un pipeline de transparence à 6 couches qui classifie — jamais ne génère — les ressources communautaires.
+                    <span className="font-semibold text-gray-700"> Chaque résultat affiche son niveau de confiance. Chaque incertitude déclenche un relais humain. Chaque décision est auditable.</span>
+                  </>
+                ) : (
+                  <>A 6-layer transparency pipeline that classifies — never generates — community resources.
+                    <span className="font-semibold text-gray-700"> Every result shows its confidence. Every gap triggers a human handoff. Every decision is auditable.</span>
+                  </>
+                )}
               </motion.p>
 
               {/* CTA Buttons */}
@@ -857,14 +876,14 @@ export default function HowItWorksPage() {
                   href="/app"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-[14px] font-semibold text-white rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all"
                 >
-                  Try the Demo
+                  {isFr ? 'Essayer la démo' : 'Try the Demo'}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="#pipeline"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-[14px] font-semibold text-gray-700 rounded-xl border border-gray-200 bg-white/60 hover:bg-white hover:border-gray-300 hover:shadow-sm transition-all"
                 >
-                  Explore the Pipeline
+                  {isFr ? 'Explorer le pipeline' : 'Explore the Pipeline'}
                   <ChevronDown className="w-4 h-4" />
                 </Link>
               </motion.div>
@@ -878,14 +897,14 @@ export default function HowItWorksPage() {
                   style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4), transparent 70%)' }}
                 />
                 <div className="text-[12px] font-bold uppercase tracking-wider text-gray-400 mb-6 text-center">
-                  The 6-Layer Transparency Pipeline
+                  {isFr ? 'Le Pipeline de Transparence à 6 Couches' : 'The 6-Layer Transparency Pipeline'}
                 </div>
                 <PipelineVisual />
                 <div className="mt-6 pt-4 border-t border-gray-100/60 flex flex-wrap items-center justify-center gap-4 text-[12px] text-gray-400">
-                  <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-red-400" /> Crisis-safe</span>
-                  <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-emerald-400" /> Transparent</span>
-                  <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-blue-400" /> Human-first</span>
-                  <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-violet-400" /> Privacy-first</span>
+                  <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-red-400" /> {isFr ? 'Sécurisé crise' : 'Crisis-safe'}</span>
+                  <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-emerald-400" /> {isFr ? 'Transparent' : 'Transparent'}</span>
+                  <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-blue-400" /> {isFr ? 'Humain d\'abord' : 'Human-first'}</span>
+                  <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-violet-400" /> {isFr ? 'Confidentialité d\'abord' : 'Privacy-first'}</span>
                 </div>
               </motion.div>
             </motion.div>
