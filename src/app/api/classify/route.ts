@@ -534,11 +534,11 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
   };
 
   // ── ATTEMPT 1: Raw fetch with timeout ──
+  // 8s timeout — Vercel free tier kills functions at 10s, so we must stay under
   const fetchStart = Date.now();
   try {
-    // 15s timeout — HuggingFace free tier can be slow on cold start
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -582,15 +582,15 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
       debug.fallbackReason = `Unexpected HF response format: keys=${Object.keys(result).join(',')}`;
       console.warn("[classify] Unexpected HF response format:", debug.fallbackReason);
     } else if (response.status === 503) {
-      // Model is loading — retry once after waiting
+      // Model is loading — retry ONCE after short wait (keep under Vercel 10s limit)
       const errBody = await response.text();
       debug.hfResponseBody = errBody.substring(0, 500);
-      console.log(`[classify] HF model loading (503), waiting 20s and retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 20000));
-      
+      console.log(`[classify] HF model loading (503), waiting 2s and retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       try {
         const controller2 = new AbortController();
-        const timeoutId2 = setTimeout(() => controller2.abort(), 15000);
+        const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
         const retryResponse = await fetch(apiUrl, {
           method: "POST",
           headers: {
@@ -706,26 +706,69 @@ async function classifyWithBART(text: string, useFrench: boolean = false): Promi
 function keywordClassify(text: string): ClassificationResult[] {
   console.log("[classify] Using KEYWORD matching (BART unavailable or failed)");
   const lower = text.toLowerCase();
+  const normalized = normalizeFrench(text); // accent-insensitive for French keywords
   const results: ClassificationResult[] = [];
 
-  const labelKeywords: Record<string, string[]> = {
-    "Housing Assistance": ["housing", "rent", "shelter", "homeless", "eviction", "evicted", "apartment", "mortgage", "section 8", "losing my home", "no money for rent", "financial help", "utility"],
-    "Food Assistance": ["food", "hungry", "groceries", "snap", "meals", "eat", "feeding", "food bank", "ebt", "starving"],
-    "Mental Health": ["mental", "depression", "depressed", "anxiety", "anxious", "therapy", "counseling", "ptsd", "stress", "stressed", "emotional", "overwhelmed", "feelings", "alone", "lonely", "isolated", "no one to talk to", "loneliness"],
-    "Employment Services": ["job", "employment", "work", "unemployed", "training", "career", "fired", "laid off", "resume", "need money", "no money", "income"],
-    "Legal Aid": ["legal", "lawyer", "immigration", "court", "custody", "divorce", "deportation", "rights"],
-    "Healthcare": ["medical", "health", "doctor", "insurance", "prescription", "hospital", "clinic", "sick", "pain", "medication", "insulin", "cancer", "dying of", "illness"],
-    "Crisis Support": ["suicidal", "crisis", "self-harm", "kill myself", "emergency", "danger", "overdose", "distress"],
-    "Senior Services": ["senior", "elderly", "aging", "medicare", "social security", "retirement", "old age", "grandparent", "elder", "older adult"],
-    "Veteran Services": ["veteran", "va ", "military", "gi bill", "vfw", "ptsd veteran", "discharge", "service member", "armed forces", "navy", "army", "marines", "air force", "coast guard"],
+  // Bilingual keyword map — English + French keywords for each category
+  // French keywords are matched against the normalized (accent-stripped) text
+  const labelKeywords: Record<string, { en: string[]; fr: string[] }> = {
+    "Housing Assistance": {
+      en: ["housing", "rent", "shelter", "homeless", "eviction", "evicted", "apartment", "mortgage", "section 8", "losing my home", "no money for rent", "financial help", "utility"],
+      fr: ["logement", "loyer", "hebergement", "sans-abri", "sans abri", "expulsion", "expulse", "appartement", "hypothek", "perdu mon logement", "pas dargent pour le loyer", "aide financiere", "sdf", "a la rue"]
+    },
+    "Food Assistance": {
+      en: ["food", "hungry", "groceries", "snap", "meals", "eat", "feeding", "food bank", "ebt", "starving"],
+      fr: ["nourriture", "faim", "courses", "repas", "manger", "alimentaire", "banque alimentaire", "affame", "aide alimentaire", "colis alimentaire"]
+    },
+    "Mental Health": {
+      en: ["mental", "depression", "depressed", "anxiety", "anxious", "therapy", "counseling", "ptsd", "stress", "stressed", "emotional", "overwhelmed", "feelings", "alone", "lonely", "isolated", "no one to talk to", "loneliness"],
+      fr: ["mental", "depression", "deprime", "anxiete", "anxieux", "anxieuse", "therapie", "consultation", "stress", "stresse", "emotionnel", "debord", "sentiments", "seul", "solitude", "isole", "personne a qui parler", "sante mentale"]
+    },
+    "Employment Services": {
+      en: ["job", "employment", "work", "unemployed", "training", "career", "fired", "laid off", "resume", "need money", "no money", "income"],
+      fr: ["emploi", "travail", "chomage", "chomeur", "formation", "carriere", "licencie", "licencie", "cv", "besoin dargent", "pas dargent", "revenu", "recherche demploi", "insertion professionnelle"]
+    },
+    "Legal Aid": {
+      en: ["legal", "lawyer", "immigration", "court", "custody", "divorce", "deportation", "rights"],
+      fr: ["juridique", "avocat", "immigration", "tribunal", "garde", "divorce", "expulsion", "droits", "justice", "procedure"]
+    },
+    "Healthcare": {
+      en: ["medical", "health", "doctor", "insurance", "prescription", "hospital", "clinic", "sick", "pain", "medication", "insulin", "cancer", "dying of", "illness"],
+      fr: ["medical", "sante", "medecin", "assurance", "ordonnance", "hopital", "clinique", "malade", "douleur", "medicament", "insuline", "cancer", "maladie", "soins"]
+    },
+    "Crisis Support": {
+      en: ["suicidal", "crisis", "self-harm", "kill myself", "emergency", "danger", "overdose", "distress"],
+      fr: ["suicidaire", "crise", "automutilation", "urgence", "danger", "overdose", "detresse"]
+    },
+    "Substance Use": {
+      en: ["addiction", "alcohol", "alcoholic", "drug", "drugs", "substance", "sober", "sobriety", "rehab", "recovery", "withdrawal", "drinking", "using", "high", "opioid", "heroin", "cocaine", "meth"],
+      fr: ["addiction", "alcool", "alcoolique", "drogue", "drogues", "substance", "dependance", "sevrage", "retraite", "recuperation", "consommation", "ivresse", "opioide", "heroine", "cocaïne"]
+    },
+    "Senior Services": {
+      en: ["senior", "elderly", "aging", "medicare", "social security", "retirement", "old age", "grandparent", "elder", "older adult"],
+      fr: ["senior", "personnes agees", "vieillissement", "retraite", "vieux", "grand-parent", "aine", "perte dautonomie", "maison de retraite"]
+    },
+    "Veteran Services": {
+      en: ["veteran", "va ", "military", "gi bill", "vfw", "ptsd veteran", "discharge", "service member", "armed forces", "navy", "army", "marines", "air force", "coast guard"],
+      fr: ["ancien combattant", "militaire", "armee", "veteran"]
+    },
   };
 
-  for (const [label, keywords] of Object.entries(labelKeywords)) {
+  for (const [label, { en: enKw, fr: frKw }] of Object.entries(labelKeywords)) {
     let score = 0;
     let matchCount = 0;
 
-    for (const keyword of keywords) {
+    // Check English keywords against lowercased text
+    for (const keyword of enKw) {
       if (lower.includes(keyword)) {
+        matchCount++;
+        score += 0.3;
+      }
+    }
+
+    // Check French keywords against normalized (accent-stripped) text
+    for (const keyword of frKw) {
+      if (normalized.includes(keyword)) {
         matchCount++;
         score += 0.3;
       }

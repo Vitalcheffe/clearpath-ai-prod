@@ -735,6 +735,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(12000), // 12s client timeout — never hang
       })
 
       if (!res.ok) {
