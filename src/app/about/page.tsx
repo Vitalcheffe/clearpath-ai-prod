@@ -297,7 +297,7 @@ export default function AboutPage() {
                 <AlertTriangle className="w-3.5 h-3.5" />
                 The Crisis We Face
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">The Problem We Solve</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Le problème que nous résolvons' : 'The Problem We Solve'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 Every day, millions of people search for community resources and fail to find what they need. The system is broken, and the people who suffer most are the ones who can least afford to wait.
               </p>
@@ -475,7 +475,7 @@ export default function AboutPage() {
                 <Brain className="w-3.5 h-3.5" />
                 Our Philosophy
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Honest Confidence</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Confiance honnête' : 'Honest Confidence'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 Not all AI uncertainty is the same. Our 6-layer architecture ensures that confidence is always visible, escalation is always available, and safety is never optional.
               </p>
@@ -588,7 +588,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="glass-card rounded-2xl p-8 md:p-12 shadow-premium space-y-6"
             >
-              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Our Mission</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Notre mission' : 'Our Mission'}</h2>
               <p className="text-[15px] text-gray-500 leading-relaxed">
                 Every year, millions of people search for community resources — housing, food, mental health support, legal aid.
                 Most never find what they need. Search engines return millions of irrelevant results. AI chatbots hallucinate
@@ -628,7 +628,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-14"
             >
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Our Story <span className="text-base font-normal text-gray-400">(Illustrative timeline)</span></h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? <>Notre histoire <span className="text-base font-normal text-gray-400">(Chronologie illustrative)</span></> : <>Our Story <span className="text-base font-normal text-gray-400">(Illustrative timeline)</span></>}</h2>
               <p className="text-[15px] text-gray-500 mt-3">From a problem we couldn&apos;t ignore to a solution we had to build — project development narrative</p>
             </motion.div>
 
@@ -743,7 +743,7 @@ export default function AboutPage() {
                 <Layers className="w-3.5 h-3.5" />
                 Competitive Analysis
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">How We&apos;re Different</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Ce qui nous différencie' : 'How We\'re Different'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 ClearPath AI is purpose-built for community resource navigation. Here is how we compare across the dimensions that matter most.
               </p>
@@ -830,7 +830,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-10"
             >
-              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Impact in Numbers</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Impact en chiffres' : 'Impact in Numbers'}</h2>
               <p className="text-[15px] text-gray-500 mt-3">Measurable results that matter</p>
             </motion.div>
             <motion.div
@@ -862,7 +862,7 @@ export default function AboutPage() {
                 <Heart className="w-3.5 h-3.5" />
                 Real Impact
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Stories of Impact</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Récits d\'impact' : 'Stories of Impact'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 These are composite stories based on real patterns we observed during testing. Names and details have been changed, but the challenges are real.
               </p>
@@ -971,7 +971,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-10"
             >
-              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">What Drives Us</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Ce qui nous anime' : 'What Drives Us'}</h2>
               <p className="text-[15px] text-gray-500 mt-3">The stories behind the code</p>
             </motion.div>
             <motion.div
@@ -1084,7 +1084,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-14"
             >
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">The Team</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'L\'équipe' : 'The Team'}</h2>
               <p className="text-[15px] text-gray-500 mt-3">Two students, two continents, one mission</p>
             </motion.div>
 
@@ -1511,7 +1511,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-14"
             >
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Roadmap</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Feuille de route' : 'Roadmap'}</h2>
               <p className="text-[15px] text-gray-500 mt-3">Where we are and where we&apos;re headed</p>
             </motion.div>
 
@@ -1731,7 +1731,7 @@ export default function AboutPage() {
                 <UserPlus className="w-3.5 h-3.5" />
                 Get Involved
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Join the Movement</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Rejoignez le mouvement' : 'Join the Movement'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 ClearPath AI is open source and community-driven. Here is how you can help build honest AI for everyone.
               </p>
@@ -1911,7 +1911,7 @@ export default function AboutPage() {
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center mx-auto shadow-premium-xl mb-6">
                   <Layers className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">Ready to try honest AI?</h2>
+                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Prêt à essayer une IA honnête ?' : 'Ready to try honest AI?'}</h2>
                 <p className="text-[15px] text-gray-500 mt-4 max-w-lg mx-auto leading-relaxed">
                   Experience AI that shows its work, admits uncertainty, and always puts your safety first.
                   No hallucinations. No hidden confidence. Just honest confidence.
