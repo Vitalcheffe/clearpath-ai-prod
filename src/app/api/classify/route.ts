@@ -939,6 +939,63 @@ function getFrenchResourcesForCategory(
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// HYBRID CLASSIFICATION — combine keyword + AI for best accuracy
+// ════════════════════════════════════════════════════════════════════════════
+// PROBLEM: mDeBERTa alone gives 100% to all categories on short inputs.
+//          Keyword matching alone misses indirect descriptions.
+//
+// SOLUTION: Run BOTH and combine with weighted ensemble:
+//   - If keywords clearly match (e.g. "rent" → Housing) → weight keywords 70%
+//   - If no keyword match (indirect description) → weight AI 70%
+//   - This produces DIFFERENTIATED scores (not all 100%) AND catches
+//     both obvious and nuanced needs
+// ════════════════════════════════════════════════════════════════════════════
+
+function combineClassifications(
+  keywordResults: ClassificationResult[],
+  aiResults: ClassificationResult[]
+): ClassificationResult[] {
+  // Build a map of all labels
+  const allLabels = new Set<string>([
+    ...keywordResults.map(r => r.label),
+    ...aiResults.map(r => r.label),
+  ]);
+
+  const combined: ClassificationResult[] = [];
+
+  for (const label of allLabels) {
+    const kwResult = keywordResults.find(r => r.label === label);
+    const aiResult = aiResults.find(r => r.label === label);
+
+    const kwScore = kwResult?.score ?? 0;
+    const aiScore = aiResult?.score ?? 0;
+
+    // Determine weights based on keyword match strength
+    // If keyword score > 0.3, keywords found a clear match → trust keywords more
+    // If keyword score <= 0.1, no keyword match → trust AI more
+    const keywordStrength = kwScore > 0.3 ? 0.7 : (kwScore > 0.1 ? 0.5 : 0.3);
+    const aiWeight = 1 - keywordStrength;
+
+    // Weighted average
+    const combinedScore = (kwScore * keywordStrength) + (aiScore * aiWeight);
+
+    // Source: 'bart' if AI was used (shows real AI), 'keyword' if only keywords
+    const source = aiResult ? 'bart' as const : 'keyword' as const;
+
+    combined.push({
+      label,
+      score: Math.round(combinedScore * 100) / 100,
+      source,
+    });
+  }
+
+  // Sort by score descending
+  combined.sort((a, b) => b.score - a.score);
+
+  return combined;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // CASCADE LOCATION RESOLUTION — strict waterfall: country → city → resources
 // ════════════════════════════════════════════════════════════════════════════
 // LOGIC:
@@ -1332,92 +1389,31 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Layer 3: AI Classification (BART if available, keyword if not — ALWAYS HONEST)
-    const { results: classifications, debug: classificationDebug } = await classifyWithBART(text, isFrench);
+    // ═══ Layer 3: HYBRID CLASSIFICATION (keyword + AI ensemble) ═══
+    // Run keyword matching (instant, bilingual, accurate for obvious needs)
+    const keywordResults = keywordClassify(text);
+
+    // Run AI classification (mDeBERTa — semantic understanding for indirect descriptions)
+    const { results: aiResults, debug: classificationDebug } = await classifyWithBART(text, isFrench);
+
+    // Combine both with weighted ensemble
+    // - Keywords provide DIFFERENTIATED scores (not all 100%)
+    // - AI adds semantic understanding for nuanced descriptions
+    const classifications = combineClassifications(keywordResults, aiResults);
 
     const classificationSource = classifications.length > 0 ? classifications[0].source : 'keyword';
 
-    // ═══ Layer 4: Confidence calibration + diversity check ═══
-    // mDeBERTa returns very high scores (0.95-1.0) for ALL labels on short/vague
-    // inputs. This is a known issue with NLI-based zero-shot models — they tend
-    // to "agree" with everything when the input doesn't contradict any label.
-    // We fix this with two checks:
-
-    // CHECK 1: Score diversity — if top score and 5th score are within 5%,
-    // the model can't differentiate between categories → treat as vague
-    const sortedScores = classifications.map(c => c.score).sort((a, b) => b - a);
-    const scoreSpread = sortedScores[0] - (sortedScores[4] ?? sortedScores[sortedScores.length - 1]);
-    const allScoresTooClose = scoreSpread < 0.05 && classifications.length >= 5;
-
-    // CHECK 2: If ALL scores are > 0.95, the model is over-confident (typical
-    // of mDeBERTa on short inputs). Apply softmax-like normalization to spread them.
-    let calibratedClassifications = classifications;
-    if (classifications.length > 0 && classifications.every(c => c.score > 0.95)) {
-      // Apply temperature scaling to spread the scores
-      const TEMPERATURE = 50; // High temperature = more spread
-      const logits = classifications.map(c => Math.log(c.score / (1 - c.score + 0.001)) / TEMPERATURE);
-      const maxLogit = Math.max(...logits);
-      const expLogits = logits.map(l => Math.exp(l - maxLogit));
-      const sumExp = expLogits.reduce((a, b) => a + b, 0);
-      const softmaxScores = expLogits.map(e => e / sumExp);
-      calibratedClassifications = classifications.map((c, i) => ({
-        ...c,
-        score: softmaxScores[i],
-      }));
-      console.log(`[classify] Applied softmax calibration — top score: ${(Math.max(...softmaxScores) * 100).toFixed(1)}%`);
-    }
-
-    // If all scores are too close (model can't differentiate), treat as needs-clarification
-    if (allScoresTooClose && classificationSource === 'bart') {
-      console.log(`[classify] Scores too close (spread: ${(scoreSpread * 100).toFixed(1)}%) — forcing clarification`);
-      // Keep only the top 2 categories, mark as needing clarification
-      const topTwo = calibratedClassifications.slice(0, 2);
-      // Force clarification since the model is uncertain
-      return NextResponse.json({
-        isCrisis: false,
-        categories: topTwo.map(c => ({
-          label: c.label,
-          confidence: Math.round(c.score * 100),
-          resources: [],
-          why: isFrench
-            ? "L'IA a détecté plusieurs besoins possibles mais ne peut pas déterminer lequel est le plus important. Pouvez-vous préciser ?"
-            : "The AI detected multiple possible needs but can't determine which is most important. Can you be more specific?",
-          warning: isFrench
-            ? "Veuillez donner plus de détails pour une meilleure correspondance"
-            : "Please provide more detail for a better match",
-        })),
-        needsClarification: true,
-        clarificationMessage: isFrench
-          ? "Votre description est trop générale. Pouvez-vous préciser ce dont vous avez besoin ? Par exemple : « j'ai perdu mon emploi et je ne peux plus payer mon loyer »"
-          : "Your description is too general. Can you be more specific? For example: 'I lost my job and can't pay rent'",
-        clarificationQuestions: null,
-        model: isFrench ? "mDeBERTa-v3 (scores trop proches — clarification requise)" : "mDeBERTa-v3 (scores too close — clarification required)",
-        classificationSource: 'bart-uncertain',
-        hasLocation: userLat !== undefined,
-        outsideServiceArea: country
-          ? (location.frenchCityMatch === null)
-          : (cityMatch ? !cityMatch.isInServiceArea : false),
-        serviceArea: country
-          ? (location.frenchCityMatch
-            ? `${location.frenchCityMatch.city.nameFr}, ${location.countryNameFr}`
-            : location.countryNameFr)
-          : cityLabel + ' metro area',
-        cityId: country ? null : cityId,
-        cityLabel: country ? (location.frenchCityMatch?.city.nameFr ?? null) : cityLabel,
-        country,
-        locale: isFrench ? 'fr' : 'en',
-      });
-    }
-
-    // Layer 4b: Confidence-gated response (with calibrated scores)
+    // ═══ Layer 4: Confidence-gated response ═══
+    // The hybrid method produces naturally differentiated scores.
+    // No need for softmax calibration — keywords anchor the scores.
     const MULTI_NEED_THRESHOLD = 0.10;
-    const MAX_CATEGORIES = 3; // Reduced from 5 to 3 — showing 5 categories at 100% is misleading
-    let significantCategories = calibratedClassifications
+    const MAX_CATEGORIES = 3;
+    let significantCategories = classifications
       .filter(c => c.score >= MULTI_NEED_THRESHOLD)
       .slice(0, MAX_CATEGORIES);
 
-    if (significantCategories.length === 0 && calibratedClassifications.length > 0) {
-      significantCategories = [calibratedClassifications[0]];
+    if (significantCategories.length === 0 && classifications.length > 0) {
+      significantCategories = [classifications[0]];
     }
 
     const CLARIFICATION_THRESHOLD = 0.70;
