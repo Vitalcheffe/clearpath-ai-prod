@@ -21,6 +21,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { useI18n } from '@/i18n'
+import { SUPPORTED_COUNTRIES, FRENCH_CITIES } from '@/data/frenchCityResources'
 
 // ─── TYPES ───────────────────────────────────────────────
 interface Resource {
@@ -652,8 +653,9 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationStatus, setLocationStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle')
 
-  // Multi-city selection
+  // Multi-city + multi-country selection
   const [selectedCityId, setSelectedCityId] = useState<string | null>(null)
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
   const [detectedCityLabel, setDetectedCityLabel] = useState<string>('Houston, TX')
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false)
 
@@ -728,6 +730,9 @@ export default function Home() {
       }
       if (selectedCityId) {
         requestBody.cityId = selectedCityId
+      }
+      if (selectedCountry) {
+        requestBody.country = selectedCountry
       }
       requestBody.locale = t.locale
 
@@ -871,32 +876,62 @@ export default function Home() {
             <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
             <span className="text-[12px] text-blue-700 font-medium">Serving the <span className="font-bold">{currentCityLabel}</span> metro area</span>
             
-            {/* City selector dropdown */}
+            {/* City + Country selector dropdown */}
             <div className="relative ml-1">
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setCityDropdownOpen(!cityDropdownOpen) }}
                 className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-100/60 rounded-md hover:bg-blue-100 transition-colors"
               >
-                {isFr ? 'Changer de ville' : 'Change city'}
+                {isFr ? 'Changer de lieu' : 'Change location'}
                 <ChevronDown className="w-3 h-3" />
               </button>
               {cityDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                <div className="absolute top-full left-0 mt-1 w-56 max-h-80 overflow-y-auto bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                  {/* US cities */}
+                  <p className="px-3 py-1.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider sticky top-0 bg-white">🇺🇸 {isFr ? 'États-Unis' : 'United States'}</p>
                   {SUPPORTED_CITIES.map(city => (
                     <button
                       key={city.id}
                       onClick={() => {
                         setSelectedCityId(city.id)
+                        setSelectedCountry(null)
                         setDetectedCityLabel(city.label)
                         setCityDropdownOpen(false)
                       }}
                       className={`w-full text-left px-3 py-2 text-[12px] hover:bg-blue-50 transition-colors ${
-                        (selectedCityId === city.id || (!selectedCityId && city.id === 'houston')) ? 'text-blue-700 font-semibold bg-blue-50/50' : 'text-gray-700'
+                        (selectedCityId === city.id || (!selectedCityId && !selectedCountry && city.id === 'houston')) ? 'text-blue-700 font-semibold bg-blue-50/50' : 'text-gray-700'
                       }`}
                     >
                       {city.label}
                     </button>
                   ))}
+                  {/* French-speaking countries */}
+                  {SUPPORTED_COUNTRIES.map(country => {
+                    const countryCities = FRENCH_CITIES.filter(c => c.countryId === country.id)
+                    return (
+                      <div key={country.id}>
+                        <p className="px-3 py-1.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider sticky top-0 bg-white border-t border-gray-100">
+                          {country.flag} {isFr ? country.nameFr : country.name}
+                        </p>
+                        {countryCities.map(city => (
+                          <button
+                            key={city.id}
+                            onClick={() => {
+                              setSelectedCityId(null)
+                              setSelectedCountry(country.id)
+                              setDetectedCityLabel(city.nameFr)
+                              setCityDropdownOpen(false)
+                            }}
+                            className={`w-full text-left px-3 py-2 text-[12px] hover:bg-blue-50 transition-colors ${
+                              (selectedCountry === country.id && detectedCityLabel === city.nameFr) ? 'text-blue-700 font-semibold bg-blue-50/50' : 'text-gray-700'
+                            }`}
+                          >
+                            {city.nameFr}
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
