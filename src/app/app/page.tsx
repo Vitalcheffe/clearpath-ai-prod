@@ -1051,7 +1051,8 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {/* ─── INPUT BAR (sticky bottom) ─── */}
+      {/* ─── INPUT BAR (sticky bottom — hidden when empty state shows its own input) ─── */}
+      {hasQueries && (
       <div className="shrink-0 border-t border-gray-200/40 bg-white/80 backdrop-blur-md">
         <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-3">
           <div className="rounded-2xl border border-gray-200/60 focus-within:border-gray-300/80 bg-white transition-all duration-300 overflow-hidden">
@@ -1104,6 +1105,7 @@ export default function Home() {
           </p>
         </div>
       </div>
+      )}
     </div>
   )
 }
