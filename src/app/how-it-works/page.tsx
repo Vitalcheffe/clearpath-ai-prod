@@ -844,13 +844,13 @@ export default function HowItWorksPage() {
               <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
                 {isFr ? (
                   <>Comment ClearPath AI{' '}
-                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                    <span className="text-blue-600">
                       fonctionne
                     </span>
                   </>
                 ) : (
                   <>How ClearPath AI{' '}
-                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                    <span className="text-blue-600">
                       Works
                     </span>
                   </>

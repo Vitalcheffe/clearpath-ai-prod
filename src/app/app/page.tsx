@@ -14,6 +14,7 @@ import {
   MapPin,
   AlertTriangle,
   ShieldCheck,
+  Lock as LockIcon,
   ArrowRight,
   Send,
   RotateCcw,
@@ -964,22 +965,74 @@ export default function Home() {
       {/* ─── SCROLLABLE CONTENT AREA ─── */}
       <main ref={scrollRef} className="flex-1 overflow-y-auto max-w-[720px] w-full mx-auto px-4 sm:px-6 py-6">
 
-        {/* Empty state: show starters */}
+        {/* Empty state: input FIRST, then starters below */}
         {!hasQueries && !isLoading && (
-          <div className="space-y-3">
-            <div className="text-center mb-6">
+          <div className="space-y-4">
+            <div className="text-center mb-4">
               <h1 className="text-[24px] font-bold text-gray-900 tracking-tight">
                 {isFr ? "De quoi avez-vous besoin ?" : "What do you need help with?"}
               </h1>
-              <p className="text-[14px] text-gray-400 mt-2">
+              <p className="text-[14px] text-gray-600 mt-2">
                 {isFr
                   ? `Décrivez votre situation et nous vous mettrons en relation avec des ressources communautaires vérifiées à ${currentCityLabel}.`
                   : `Describe your situation and we'll match you with verified community resources in ${currentCityLabel}.`}
               </p>
             </div>
-            {(isFr ? startersFr : startersEn).map((s, i) => (
-              <SuggestionCard key={s.id} s={s} index={i} onSelect={handleSelectStarter} />
-            ))}
+
+            {/* Trust badges — prominent, above the input */}
+            <div className="flex items-center justify-center gap-3 flex-wrap mb-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {isFr ? "Ressources vérifiées" : "Verified resources"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-violet-700 bg-violet-50 border border-violet-100">
+                <LockIcon className="w-3.5 h-3.5" />
+                {isFr ? "Rien n'est stocké" : "Nothing stored"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-100">
+                <Phone className="w-3.5 h-3.5" />
+                {isFr ? "Crise 24/7" : "Crisis line 24/7"}
+              </span>
+            </div>
+
+            {/* Prominent input field at the TOP — not hidden below starters */}
+            <div className="rounded-2xl border-2 border-blue-200 bg-white shadow-lg shadow-blue-500/10 p-4 mb-2">
+              <textarea
+                ref={textareaRef}
+                value={inputText}
+                onChange={handleTextareaInput}
+                onKeyDown={handleKeyDown}
+                placeholder={isFr ? "Décrivez ce dont vous avez besoin..." : "Describe what you need help with..."}
+                className="w-full bg-transparent text-[15px] outline-none text-gray-900 placeholder:text-gray-400 font-medium resize-none min-h-[60px] max-h-[120px] leading-relaxed"
+                rows={3}
+                autoFocus
+              />
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <span className="text-[11px] text-gray-400">
+                  {isFr ? "Appuyez sur Entrée pour envoyer" : "Press Enter to send"}
+                </span>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!inputText.trim()}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 text-[13px] font-semibold text-white rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-md shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {isFr ? "Trouver des ressources" : "Find resources"}
+                </button>
+              </div>
+            </div>
+
+            {/* Starter examples — compact, below the input */}
+            <div className="mt-2">
+              <p className="text-[11px] text-gray-400 font-medium text-center mb-2">
+                {isFr ? "Ou essayez un exemple :" : "Or try an example:"}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {(isFr ? startersFr : startersEn).slice(0, 4).map((s, i) => (
+                  <SuggestionCard key={s.id} s={s} index={i} onSelect={handleSelectStarter} />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

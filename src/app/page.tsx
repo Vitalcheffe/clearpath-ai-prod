@@ -782,9 +782,9 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold bg-emerald-50/80 text-emerald-700 border border-emerald-100/60 backdrop-blur-sm">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Built for USAII Global AI Hackathon 2026
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold bg-blue-50/80 text-blue-700 border border-blue-100/60 backdrop-blur-sm">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  {t.locale === 'fr' ? 'Gratuit · Anonyme · 24h/24' : 'Free · Anonymous · 24/7'}
                 </span>
               </motion.div>
 
@@ -797,13 +797,13 @@ export default function LandingPage() {
               >
                 {t.locale === 'fr' ? (
                   <>Quand ça compte le plus,{' '}
-                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                    <span className="text-blue-600">
                       l'honnêteté est la réponse la plus sûre.
                     </span>
                   </>
                 ) : (
                   <>When it matters most,{' '}
-                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                    <span className="text-blue-600">
                       honesty is the safest answer.
                     </span>
                   </>
@@ -815,15 +815,15 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.35 }}
-                className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl"
+                className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-2xl"
               >
                 {t.locale === 'fr' ? (
                   <>ClearPath AI vous connecte avec des ressources communautaires vérifiées — affichant une honnêteté calibrée au lieu de cacher l'incertitude.{' '}
-                    <span className="font-semibold text-gray-700">Classifiées, non générées.</span>
+                    <span className="font-semibold text-gray-700">Ressources réelles de bases de données vérifiées — jamais de réponses inventées.</span>
                   </>
                 ) : (
                   <>ClearPath AI connects you with verified community resources — showing honest confidence instead of hiding uncertainty.{' '}
-                    <span className="font-semibold text-gray-700">Classified, not generated.</span>
+                    <span className="font-semibold text-gray-700">Real resources from verified databases — never made-up answers.</span>
                   </>
                 )}
               </motion.p>
@@ -2300,7 +2300,7 @@ export default function LandingPage() {
                   : "When it matters most, honesty is the safest answer. Connecting people with verified community resources through honest confidence."}
               </p>
               <p className="text-[11px] text-gray-500 font-medium">
-                Built for USAII Global AI Hackathon 2026
+                {t.locale === 'fr' ? 'Open source · Gratuit · Anonyme' : 'Open source · Free · Anonymous'}
               </p>
               {/* Newsletter */}
               <div className="pt-4">

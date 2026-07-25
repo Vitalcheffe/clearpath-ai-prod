@@ -203,28 +203,28 @@ export default function AboutPage() {
 
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
-              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold bg-emerald-50/80 text-emerald-700 border border-emerald-100/60 mb-6">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Built for USAII Global AI Hackathon 2026
+              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold bg-blue-50/80 text-blue-700 border border-blue-100/60 mb-6">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                {isFr ? 'Gratuit · Anonyme · 24h/24' : 'Free · Anonymous · 24/7'}
               </motion.div>
 
               <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
                 {isFr ? (
                   <>Construire une IA qui{' '}
-                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                    <span className="text-blue-600">
                       dit la vérité
                     </span>
                   </>
                 ) : (
                   <>Building AI that{' '}
-                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                    <span className="text-blue-600">
                       tells the truth
                     </span>
                   </>
                 )}
               </motion.h1>
 
-              <motion.p variants={fadeInUp} className="text-lg sm:text-xl text-gray-500 mt-6 max-w-3xl mx-auto leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg sm:text-xl text-gray-700 mt-6 max-w-3xl mx-auto leading-relaxed">
                 {isFr ? (
                   <>Quand les gens sont en crise, ils méritent des réponses honnêtes — pas des hallucinations rassurantes.
                     ClearPath AI repose sur un principe simple : <span className="font-semibold text-gray-700">classifié, non généré.</span>{' '}
