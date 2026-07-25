@@ -664,8 +664,20 @@ function QueryResultBlock({ entry, onClarify }: { entry: QueryEntry; onClarify: 
           <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-amber-50/60 border border-amber-100/40">
             <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-[12px] text-amber-800 font-semibold leading-snug">You appear to be outside our service area ({result.cityLabel || result.serviceArea || 'supported cities'}).</p>
-              <p className="text-[11px] text-amber-600 mt-1 leading-relaxed">Showing national resources and resources from the nearest supported city. For local help, dial 211.</p>
+              <p className="text-[12px] text-amber-800 font-semibold leading-snug">
+                {isFr
+                  ? `Vous semblez être en dehors de notre zone de service (${result.cityLabel || result.serviceArea || 'villes supportées'}).`
+                  : `You appear to be outside our service area (${result.cityLabel || result.serviceArea || 'supported cities'}).`}
+              </p>
+              <p className="text-[11px] text-amber-600 mt-1 leading-relaxed">
+                {result.country
+                  ? (isFr
+                    ? `Affichage des ressources nationales et de la ville supportée la plus proche.`
+                    : `Showing national resources and resources from the nearest supported city.`)
+                  : (isFr
+                    ? `Affichage des ressources nationales. Pour de l'aide locale, composez le 211.`
+                    : `Showing national resources and resources from the nearest supported city. For local help, dial 211.`)}
+              </p>
             </div>
           </div>
         )}

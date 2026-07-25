@@ -1432,11 +1432,12 @@ export async function POST(request: NextRequest) {
             ? `If someone is in immediate danger, call ${emergencyNumber}.`
             : `If you are in immediate physical danger, call ${emergencyNumber}.`);
 
-      // For French countries, return French crisis resources; for US, return US crisis resources
+      // For French countries, return French crisis resources (if any);
+      // NEVER fall back to US resources for French countries — the country-specific
+      // hotlines are already shown via getCrisisLinesForCountry() above.
+      // For US (null country), return US crisis resources as before.
       const crisisResources = country
-        ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng).length > 0
-          ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng)
-          : getResourcesForCategory("Crisis Support", cityId, userLat, userLng)
+        ? getFrenchResourcesForCategory("Crisis Support", country, userLat, userLng)
         : getResourcesForCategory("Crisis Support", cityId, userLat, userLng);
 
       // For French countries, determine the French city label
