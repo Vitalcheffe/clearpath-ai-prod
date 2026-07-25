@@ -42,6 +42,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 // ─── ANIMATION VARIANTS ──────────────────────────────────
 const fadeInUp = {
@@ -484,6 +485,8 @@ const regulations = [
 
 // ─── RESPONSIBLE AI PAGE ─────────────────────────────────
 export default function ResponsibleAIPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   const [expandedRisk, setExpandedRisk] = useState<number | null>(null)
 
   return (
@@ -510,11 +513,21 @@ export default function ResponsibleAIPage() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mt-8 leading-[1.1]"
           >
-            Responsible AI is not a feature.{' '}
-            <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
-              It&apos;s the architecture.
-            </span>
+            {isFr ? (
+              <>L'IA responsable n'est pas une fonctionnalité.{' '}
+                <br className="hidden sm:block" />
+                <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                  C'est l'architecture.
+                </span>
+              </>
+            ) : (
+              <>Responsible AI is not a feature.{' '}
+                <br className="hidden sm:block" />
+                <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent gradient-text-animate bg-[length:200%_200%]">
+                  It&apos;s the architecture.
+                </span>
+              </>
+            )}
           </motion.h1>
 
           <motion.p
@@ -523,10 +536,19 @@ export default function ResponsibleAIPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-lg sm:text-xl text-gray-500 mt-8 max-w-3xl mx-auto leading-relaxed"
           >
-            ClearPath AI is built on a single conviction:{' '}
-            <span className="font-semibold text-gray-700">
-              a confident wrong answer is more dangerous than no answer at all.
-            </span>{' '}
+            {isFr ? (
+              <>ClearPath AI est construit sur une seule conviction :{' '}
+                <span className="font-semibold text-gray-700">
+                  une mauvaise réponse donnée avec assurance est plus dangereuse qu'une absence de réponse.
+                </span>{' '}
+              </>
+            ) : (
+              <>ClearPath AI is built on a single conviction:{' '}
+                <span className="font-semibold text-gray-700">
+                  a confident wrong answer is more dangerous than no answer at all.
+                </span>{' '}
+              </>
+            )}
             When vulnerable people seek help with food, housing, or mental health, an AI that
             confidently directs them to a non-existent program doesn&apos;t just waste time — it
             erodes trust in the entire help-seeking process. Our Responsible AI Framework is not an

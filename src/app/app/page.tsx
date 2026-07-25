@@ -90,12 +90,20 @@ interface QueryEntry {
 }
 
 // ─── STARTERS ────────────────────────────────────────────
-const starters = [
+const startersEn = [
   { id: 'multi', label: 'Multi-Need', description: "I lost my job and can't pay rent. My kids need food.", icon: 'layers' },
   { id: 'crisis', label: 'Crisis', description: "I can't take this anymore. I want it all to end.", icon: 'shield' },
   { id: 'vague', label: 'Unclear Need', description: 'I need help with my situation', icon: 'help' },
   { id: 'senior', label: 'Senior', description: "I'm 78 and need help getting groceries delivered", icon: 'heart' },
   { id: 'veteran', label: 'Complex', description: "I'm a veteran dealing with PTSD and housing issues", icon: 'star' },
+]
+
+const startersFr = [
+  { id: 'multi', label: 'Multi-besoins', description: "J'ai perdu mon emploi et je ne peux plus payer mon loyer. Mes enfants ont besoin de nourriture.", icon: 'layers' },
+  { id: 'crisis', label: 'Crise', description: "Je n'en peux plus. Je veux que ça s'arrête.", icon: 'shield' },
+  { id: 'vague', label: 'Besoin flou', description: "J'ai besoin d'aide avec ma situation", icon: 'help' },
+  { id: 'senior', label: 'Senior', description: "J'ai 78 ans et j'ai besoin qu'on me livre des courses", icon: 'heart' },
+  { id: 'veteran', label: 'Complexe', description: "Je suis un ancien combattant avec un SSPT et des problèmes de logement", icon: 'star' },
 ]
 
 // ─── UTILITIES ───────────────────────────────────────────
@@ -448,7 +456,7 @@ function ClarifyPanel({ confidence, clarificationMessage, onClarify }: {
 
 // ─── SUGGESTION CARD ──────────────────────────────────────
 function SuggestionCard({ s, index, onSelect }: {
-  s: typeof starters[0]; index: number; onSelect: (id: string, label: string) => void
+  s: typeof startersEn[0]; index: number; onSelect: (id: string, label: string) => void
 }) {
   const iconMap: Record<string, { icon: ReactNode; gradient: string; color: string }> = {
     layers: { icon: <Layers className="w-5 h-5" />, gradient: 'from-blue-500/10 to-indigo-500/10', color: 'text-blue-600' },
@@ -816,9 +824,10 @@ export default function Home() {
   }, [inputText, handleSend])
 
   const handleSelectStarter = useCallback((id: string, _label: string) => {
-    const starter = starters.find(s => s.id === id)
+    const allStarters = isFr ? startersFr : startersEn
+    const starter = allStarters.find(s => s.id === id)
     if (starter) handleSend(starter.description)
-  }, [handleSend])
+  }, [handleSend, isFr])
 
   const handleClarifySelect = useCallback((optionText: string) => {
     handleSend(optionText)
@@ -968,7 +977,7 @@ export default function Home() {
                   : `Describe your situation and we'll match you with verified community resources in ${currentCityLabel}.`}
               </p>
             </div>
-            {starters.map((s, i) => (
+            {(isFr ? startersFr : startersEn).map((s, i) => (
               <SuggestionCard key={s.id} s={s} index={i} onSelect={handleSelectStarter} />
             ))}
           </div>

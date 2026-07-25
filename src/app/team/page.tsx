@@ -90,6 +90,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 /* ═══ Animation Variants ═══ */
 const fadeInUp = {
@@ -411,6 +412,8 @@ const openPositions = [
 
 /* ═══ Main Team Page ═══ */
 export default function TeamPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   const timelineRef = useRef(null)
   const timelineInView = useInView(timelineRef, { once: true, margin: '-100px' })
 
@@ -443,10 +446,19 @@ export default function TeamPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight"
               >
-                The Team Behind{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
-                  ClearPath AI
-                </span>
+                {isFr ? (
+                  <>L'équipe derrière{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                      ClearPath AI
+                    </span>
+                  </>
+                ) : (
+                  <>The Team Behind{' '}
+                    <span className="bg-gradient-to-r from-blue-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent gradient-text-animate">
+                      ClearPath AI
+                    </span>
+                  </>
+                )}
               </motion.h1>
 
               {/* Subtitle */}
@@ -454,8 +466,15 @@ export default function TeamPage() {
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-gray-500 mt-6 max-w-3xl mx-auto leading-relaxed"
               >
-                We&apos;re two high school students from Morocco who believe that when AI serves people in crisis, honesty isn&apos;t optional — it&apos;s the architecture.{' '}
-                Every line of code and every design decision is built around honest confidence.
+                {isFr ? (
+                  <>Nous sommes deux lycéens du Maroc qui croient que quand l'IA sert des personnes en crise, l'honnêteté n'est pas optionnelle — c'est l'architecture.{' '}
+                    Chaque ligne de code et chaque décision de conception sont construites autour d'une confiance honnête.
+                  </>
+                ) : (
+                  <>We&apos;re two high school students from Morocco who believe that when AI serves people in crisis, honesty isn&apos;t optional — it&apos;s the architecture.{' '}
+                    Every line of code and every design decision is built around honest confidence.
+                  </>
+                )}
               </motion.p>
 
               {/* Team Stats */}
@@ -517,7 +536,7 @@ export default function TeamPage() {
                 <Star className="w-3.5 h-3.5" />
                 Leadership
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Our Leadership Team</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Notre équipe de direction' : 'Our Leadership Team'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 The visionaries and architects who set the direction for responsible AI in community services.
               </p>
@@ -640,7 +659,7 @@ export default function TeamPage() {
                 <Users className="w-3.5 h-3.5" />
                 The Builders
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Growing the Team</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Développer l\'équipe' : 'Growing the Team'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 Two high school students from Morocco who turned a vision of honest AI into a working, testable system.
               </p>
@@ -758,7 +777,7 @@ export default function TeamPage() {
                 <Compass className="w-3.5 h-3.5" />
                 Honest Status
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">No Advisory Board <span className="text-base font-medium text-gray-400">(Yet)</span></h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? <>Pas de conseil consultatif <span className="text-base font-medium text-gray-400">(Pas encore)</span></> : <>No Advisory Board <span className="text-base font-medium text-gray-400">(Yet)</span></>}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 We are two high school students from Morocco. We do not have an advisory board, and we will not fabricate one. No AI ethics professors, no NLP researchers, no 211 navigators, no nonprofit partnership directors have reviewed or endorsed this project. Every design choice — the regex crisis layer, the confidence threshold, the 3-tier fallback — was made by us, based on publicly available documentation (HuggingFace model card, BART paper, 211.org public service description) and our own judgment. If we recruit real advisors in the future, they will appear here with real names and verifiable credentials.
               </p>
@@ -844,7 +863,7 @@ export default function TeamPage() {
                 <Heart className="w-3.5 h-3.5" />
                 What We Stand For
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Our Values</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Nos valeurs' : 'Our Values'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 These aren&apos;t just words on a wall. Every value below is encoded into our architecture, tested in our pipeline, and verified by our advisory board.
               </p>
@@ -901,7 +920,7 @@ export default function TeamPage() {
                 <Workflow className="w-3.5 h-3.5" />
                 Our Methodology
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">How We Work</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Comment nous travaillons' : 'How We Work'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 From community research to privacy-first deployment, every step of our process is designed to build AI that is honest, safe, and accountable.
               </p>
@@ -980,7 +999,7 @@ export default function TeamPage() {
                 <Calendar className="w-3.5 h-3.5" />
                 Our Journey
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">From Idea to Impact</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'De l\'idée à l\'impact' : 'From Idea to Impact'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 Six months. One idea. A system that proves honest AI is not just possible — it&apos;s better.
               </p>
@@ -1039,7 +1058,7 @@ export default function TeamPage() {
                 <Briefcase className="w-3.5 h-3.5" />
                 Future Openings
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Future Openings <span className="text-base font-medium text-gray-400">(Not Currently Hiring)</span></h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? <>Postes à pourvoir <span className="text-base font-medium text-gray-400">(On ne recrute pas actuellement)</span></> : <>Future Openings <span className="text-base font-medium text-gray-400">(Not Currently Hiring)</span></>}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 These positions will open after the hackathon as ClearPath AI grows. We are not currently hiring, but we are planning for the roles below. Every role at ClearPath AI directly impacts someone who needs help finding it.
               </p>
@@ -1160,7 +1179,7 @@ export default function TeamPage() {
                 <BarChart3 className="w-3.5 h-3.5" />
                 Impact Metrics
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Team by the Numbers</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'L\'équipe en chiffres' : 'Team by the Numbers'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 The measurable impact our team has achieved in just six months of building ClearPath AI.
               </p>
@@ -1225,7 +1244,7 @@ export default function TeamPage() {
                     <Heart className="w-6 h-6 text-pink-500" />
                   </div>
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">Diversity, Equity & Inclusion</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Diversité, équité et inclusion' : 'Diversity, Equity & Inclusion'}</h2>
                     <p className="text-[13px] text-gray-400 font-medium">Not a checkbox — a core principle</p>
                   </div>
                 </div>
@@ -1274,7 +1293,7 @@ export default function TeamPage() {
                 <Terminal className="w-3.5 h-3.5" />
                 Built With
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Our Tech Stack</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{isFr ? 'Notre stack technique' : 'Our Tech Stack'}</h2>
               <p className="text-[15px] text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed">
                 Every technology choice is intentional — optimized for speed, privacy, and transparency.
               </p>
