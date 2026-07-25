@@ -499,16 +499,43 @@ function LoadingIndicator() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
-      className="flex items-center gap-3 p-4"
+      className="space-y-4"
     >
-      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0">
-        <Layers className="w-4 h-4 text-white" />
+      {/* Status line */}
+      <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0">
+          <Layers className="w-4 h-4 text-white animate-pulse" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <span className="text-[13px] text-gray-700 ml-2 font-semibold">
+              {isFr ? 'Analyse de votre demande en cours...' : 'Analyzing your request...'}
+            </span>
+          </div>
+          <p className="text-[11px] text-gray-500 mt-1">
+            {isFr ? 'Recherche de ressources vérifiées dans votre région' : 'Searching verified resources in your area'}
+          </p>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-        <span className="text-[12px] text-gray-400 ml-2 font-medium">{isFr ? 'Classification de votre demande...' : 'Classifying your request...'}</span>
+
+      {/* Skeleton cards — show what will appear */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gray-100 animate-pulse" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3 bg-gray-100 rounded animate-pulse w-1/3" />
+            <div className="h-2.5 bg-gray-50 rounded animate-pulse w-1/2" />
+          </div>
+        </div>
+        <div className="h-px bg-gray-50" />
+        <div className="space-y-2">
+          <div className="h-2.5 bg-gray-50 rounded animate-pulse w-full" />
+          <div className="h-2.5 bg-gray-50 rounded animate-pulse w-4/5" />
+          <div className="h-2.5 bg-gray-50 rounded animate-pulse w-3/5" />
+        </div>
       </div>
     </motion.div>
   )
@@ -885,7 +912,7 @@ export default function Home() {
         <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-3">
           <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50/60 border border-blue-100/40 flex-wrap">
             <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-            <span className="text-[12px] text-blue-700 font-medium">Serving the <span className="font-bold">{currentCityLabel}</span> metro area</span>
+            <span className="text-[12px] text-blue-700 font-medium">{isFr ? <>Ressources pour <span className="font-bold">{currentCityLabel}</span></> : <>Serving the <span className="font-bold">{currentCityLabel}</span> metro area</>}</span>
             
             {/* City + Country selector dropdown */}
             <div className="relative ml-1">
@@ -949,14 +976,14 @@ export default function Home() {
 
             {locationStatus === 'idle' && !userLocation && (
               <button onClick={requestLocation} className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-100/60 rounded-md hover:bg-blue-100 transition-colors">
-                Use my location
+                {isFr ? 'Utiliser ma position' : 'Use my location'}
               </button>
             )}
             {locationStatus === 'granted' && (
-              <span className="ml-1 text-[10px] text-emerald-500 font-semibold">Location detected</span>
+              <span className="ml-1 text-[10px] text-emerald-500 font-semibold">{isFr ? 'Position détectée' : 'Location detected'}</span>
             )}
             {locationStatus === 'requesting' && (
-              <span className="ml-1 text-[10px] text-blue-500 font-semibold animate-pulse">Detecting...</span>
+              <span className="ml-1 text-[10px] text-blue-500 font-semibold animate-pulse">{isFr ? 'Détection...' : 'Detecting...'}</span>
             )}
           </div>
         </div>
@@ -1008,7 +1035,7 @@ export default function Home() {
                 autoFocus
               />
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <span className="text-[11px] text-gray-400">
+                <span className="text-[11px] text-gray-600 font-medium">
                   {isFr ? "Appuyez sur Entrée pour envoyer" : "Press Enter to send"}
                 </span>
                 <button

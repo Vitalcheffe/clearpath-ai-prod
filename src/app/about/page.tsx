@@ -246,10 +246,10 @@ export default function AboutPage() {
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-3xl mx-auto"
               >
                 {[
-                  { value: '6', suffix: '', label: 'Transparency Layers', icon: Layers, color: '#10b981' },
-                  { value: '6', suffix: '', label: 'Cities Hand-Verified', icon: BarChart3, color: '#3b82f6' },
-                  { value: '<2s', suffix: 's', label: 'Avg. Response Time', icon: Timer, color: '#6366f1' },
-                  { value: '100%', suffix: '%', label: 'Confidence Visible', icon: Eye, color: '#f59e0b' },
+                  { value: isFr ? '<2s' : '<2s', suffix: isFr ? '' : '', label: isFr ? 'Pour trouver une ressource' : 'To first resource', icon: Timer, color: '#10b981' },
+                  { value: isFr ? '24/7' : '24/7', suffix: '', label: isFr ? 'Ligne de crise intégrée' : 'Crisis line built in', icon: Phone, color: '#3b82f6' },
+                  { value: isFr ? '15+' : '15+', suffix: '', label: isFr ? 'Villes — vérifiez la vôtre' : 'Cities — check yours', icon: BarChart3, color: '#6366f1' },
+                  { value: isFr ? '0' : '0', suffix: '', label: isFr ? 'Compte, 0 traçage' : 'Accounts, 0 logging', icon: Eye, color: '#f59e0b' },
                 ].map((stat) => {
                   const Icon = stat.icon
                   return (
