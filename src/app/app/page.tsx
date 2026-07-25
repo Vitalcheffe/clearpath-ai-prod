@@ -21,7 +21,8 @@ import {
   Clock,
 } from 'lucide-react'
 import { useI18n } from '@/i18n'
-import { SUPPORTED_COUNTRIES, FRENCH_CITIES } from '@/data/frenchCityResources'
+import { SUPPORTED_COUNTRIES } from '@/data/frenchResources'
+import { FRENCH_CITIES } from '@/data/frenchCityResources'
 
 // ─── TYPES ───────────────────────────────────────────────
 interface Resource {
