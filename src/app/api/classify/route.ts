@@ -665,47 +665,199 @@ function keywordClassify(text: string): ClassificationResult[] {
   const results: ClassificationResult[] = [];
 
   // Bilingual keyword map — English + French keywords for each category
+  // Includes DIRECT keywords (rent, food, job) + INDIRECT expressions
+  // (keep a roof over my head, cupboards are bare, etc.)
   // French keywords are matched against the normalized (accent-stripped) text
   const labelKeywords: Record<string, { en: string[]; fr: string[] }> = {
     "Housing Assistance": {
-      en: ["housing", "rent", "shelter", "homeless", "eviction", "evicted", "apartment", "mortgage", "section 8", "losing my home", "no money for rent", "financial help", "utility"],
-      fr: ["logement", "loyer", "hebergement", "sans-abri", "sans abri", "expulsion", "expulse", "appartement", "hypothek", "perdu mon logement", "pas dargent pour le loyer", "aide financiere", "sdf", "a la rue"]
+      en: [
+        // Direct
+        "housing", "rent", "shelter", "homeless", "eviction", "evicted", "apartment", "mortgage",
+        "section 8", "losing my home", "no money for rent", "financial help", "utility",
+        // Indirect / idiomatic
+        "roof over my head", "keep a roof", "put a roof", "place to stay", "nowhere to go",
+        "kicked out", "kicked me out", "living in my car", "living on the street", "sleeping in my car",
+        "behind on rent", "behind on my rent", "cant pay rent", "cant afford rent", "lose my apartment",
+        "foreclosure", "behind on mortgage", "utility shut off", "electricity shut off", "water shut off",
+        "need a place", "need somewhere to stay", "kicked out of my house", "lost my house",
+      ],
+      fr: [
+        // Direct
+        "logement", "loyer", "hebergement", "sans-abri", "sans abri", "expulsion", "expulse",
+        "appartement", "hypothek", "perdu mon logement", "pas dargent pour le loyer", "aide financiere",
+        "sdf", "a la rue",
+        // Indirect
+        "perdu mon toit", "plus de toit", "nulle part ou aller", "nulle part ou dormir",
+        "virer de chez moi", "mise a la porte", "dans ma voiture", "dors dans ma voiture",
+        "dors dehors", "dors dans la rue", "retard de loyer", "peux plus payer le loyer",
+        "perdu ma maison", "coupure delectricite", "couper leau", "couper lelectricite",
+        "besoin dun toit", "besoin dun endroit", "expulse de chez moi",
+      ],
     },
     "Food Assistance": {
-      en: ["food", "hungry", "groceries", "snap", "meals", "eat", "feeding", "food bank", "ebt", "starving"],
-      fr: ["nourriture", "faim", "courses", "repas", "manger", "alimentaire", "banque alimentaire", "affame", "aide alimentaire", "colis alimentaire"]
+      en: [
+        // Direct
+        "food", "hungry", "groceries", "snap", "meals", "eat", "feeding", "food bank", "ebt", "starving",
+        // Indirect / idiomatic
+        "cupboards are bare", "empty cupboards", "nothing to eat", "no food in the house",
+        "cant feed my kids", "cant feed my family", "cant afford food", "running out of food",
+        "food stamps", "free meals", "free food", "where can i get food", "need groceries",
+        "skip meals", "havent eaten", "havent eaten in days", "no money for food",
+        "feeding my children", "baby formula", "diapers",
+      ],
+      fr: [
+        // Direct
+        "nourriture", "faim", "courses", "repas", "manger", "alimentaire", "banque alimentaire",
+        "affame", "aide alimentaire", "colis alimentaire",
+        // Indirect
+        "rien a manger", "plus rien a manger", "rien dans le frigo", "frigo vide",
+        "peux pas nourrir mes enfants", "peux pas nourrir ma famille", "pas dargent pour manger",
+        "plus de nourriture", "tickets alimentaires", "repas gratuit", "nourriture gratuite",
+        "sauter des repas", "pas mange depuis", "pas mange depuis des jours",
+        "lait pour bebe", "couches", "besoin de nourriture",
+      ],
     },
     "Mental Health": {
-      en: ["mental", "depression", "depressed", "anxiety", "anxious", "therapy", "counseling", "ptsd", "stress", "stressed", "emotional", "overwhelmed", "feelings", "alone", "lonely", "isolated", "no one to talk to", "loneliness"],
-      fr: ["mental", "depression", "deprime", "anxiete", "anxieux", "anxieuse", "therapie", "consultation", "stress", "stresse", "emotionnel", "debord", "sentiments", "seul", "solitude", "isole", "personne a qui parler", "sante mentale"]
+      en: [
+        "mental", "depression", "depressed", "anxiety", "anxious", "therapy", "counseling", "ptsd",
+        "stress", "stressed", "emotional", "overwhelmed", "feelings", "alone", "lonely", "isolated",
+        "no one to talk to", "loneliness",
+        // Indirect
+        "cant cope", "cant cope anymore", "breaking down", "having a breakdown", "panic attack",
+        "panic attacks", "cant sleep", "havent slept", "cant stop crying", "feel hopeless",
+        "feel worthless", "feel trapped", "cant think straight", "losing my mind", "going crazy",
+        "dark thoughts", "intrusive thoughts", "trauma", "traumatized", "flashbacks",
+        "grief", "grieving", "bereavement", "lost someone", "postpartum",
+      ],
+      fr: [
+        "mental", "depression", "deprime", "anxiete", "anxieux", "anxieuse", "therapie",
+        "consultation", "stress", "stresse", "emotionnel", "debord", "sentiments", "seul",
+        "solitude", "isole", "personne a qui parler", "sante mentale",
+        // Indirect
+        "peux plus gerer", "peux plus faire face", "crise de nerfs", "attaque de panique",
+        "attaques de panique", "peux pas dormir", "arrive pas a dormir", "arrive pas a arreter de pleurer",
+        "sans espoir", "sens inutile", "sens piege", "perd la tete", "devenir fou",
+        "pensees noires", "pensees intrusives", "trauma", "traumatise", "flashbacks",
+        "deuil", "en deuil", "perdu quelquun", "postpartum",
+      ],
     },
     "Employment Services": {
-      en: ["job", "employment", "work", "unemployed", "training", "career", "fired", "laid off", "resume", "need money", "no money", "income"],
-      fr: ["emploi", "travail", "chomage", "chomeur", "formation", "carriere", "licencie", "licencie", "cv", "besoin dargent", "pas dargent", "revenu", "recherche demploi", "insertion professionnelle"]
+      en: [
+        "job", "employment", "work", "unemployed", "training", "career", "fired", "laid off",
+        "resume", "need money", "no money", "income",
+        // Indirect
+        "lost my job", "looking for work", "looking for a job", "need a job", "need work",
+        "cant find a job", "cant find work", "between jobs", "out of work", "let go",
+        "downsized", "furloughed", "hours cut", "hours reduced", "need a career change",
+        "job training", "vocational", "workforce", "need to earn money", "need income",
+        "cant pay my bills", "behind on bills", "struggling financially",
+      ],
+      fr: [
+        "emploi", "travail", "chomage", "chomeur", "formation", "carriere", "licencie",
+        "cv", "besoin dargent", "pas dargent", "revenu", "recherche demploi",
+        "insertion professionnelle",
+        // Indirect
+        "perdu mon emploi", "perdu mon travail", "cherche du travail", "cherche un emploi",
+        "besoin dun emploi", "besoin de travail", "arrive pas a trouver du travail",
+        "entre deux emplois", "sans emploi", "virer", "reduite leseffectifs",
+        "chomage partiel", "heures reduites", "reconversion", "formation professionnelle",
+        "besoin de gagner de largent", "besoin de revenus", "peux pas payer mes factures",
+        "retard sur mes factures", "difficultes financieres",
+      ],
     },
     "Legal Aid": {
-      en: ["legal", "lawyer", "immigration", "court", "custody", "divorce", "deportation", "rights"],
-      fr: ["juridique", "avocat", "immigration", "tribunal", "garde", "divorce", "expulsion", "droits", "justice", "procedure"]
+      en: [
+        "legal", "lawyer", "immigration", "court", "custody", "divorce", "deportation", "rights",
+        // Indirect
+        "attorney", "legal help", "legal advice", "sued", "being sued", "going to court",
+        "child custody", "custody battle", "child support", "alimony", "separation",
+        "green card", "visa", "citizenship", "asylum", "refugee", "naturalization",
+        "criminal charges", "arrested", "charges", "probation", "parole",
+        "tenant rights", "workers rights", "discrimination", "wrongful termination",
+      ],
+      fr: [
+        "juridique", "avocat", "immigration", "tribunal", "garde", "divorce", "expulsion",
+        "droits", "justice", "procedure",
+        // Indirect
+        "avocat", "conseil juridique", "aide juridique", "poursuivi", "poursuite",
+        "garde des enfants", "bataille pour la garde", "pension alimentaire", "separation",
+        "carte de sejour", "visa", "nationalite", "asile", "refugie", "naturalisation",
+        "accusations penales", "arrete", "charges", "probation", "liberte conditionnelle",
+        "droits du locataire", "droits des travailleurs", "discrimination", "licenciement abusif",
+      ],
     },
     "Healthcare": {
-      en: ["medical", "health", "doctor", "insurance", "prescription", "hospital", "clinic", "sick", "pain", "medication", "insulin", "cancer", "dying of", "illness"],
-      fr: ["medical", "sante", "medecin", "assurance", "ordonnance", "hopital", "clinique", "malade", "douleur", "medicament", "insuline", "cancer", "maladie", "soins"]
+      en: [
+        "medical", "health", "doctor", "insurance", "prescription", "hospital", "clinic",
+        "sick", "pain", "medication", "insulin", "cancer", "dying of", "illness",
+        // Indirect
+        "need to see a doctor", "cant afford a doctor", "no insurance", "no health insurance",
+        "medicaid", "medicare", "free clinic", "low cost clinic", "dental", "vision",
+        "prenatal", "pregnant", "pregnancy", "vaccination", "immunization", "checkup",
+        "emergency room", "er", "urgent care", "need medicine", "cant afford medication",
+        "chronic pain", "disability", "disabled", "wheelchair", "handicap",
+      ],
+      fr: [
+        "medical", "sante", "medecin", "assurance", "ordonnance", "hopital", "clinique",
+        "malade", "douleur", "medicament", "insuline", "cancer", "maladie", "soins",
+        // Indirect
+        "besoin dun medecin", "peux pas payer un medecin", "pas dassurance", "pas dassurance maladie",
+        "securite sociale", "cmu", "css", "clinique gratuite", "clinique a bas cout",
+        "dentiste", "ophtalmo", "grossesse", "enceinte", "vaccination", "vaccin",
+        "urgences", "besoin de medicaments", "peux pas payer mes medicaments",
+        "douleur chronique", "handicap", "invalidite", "fauteuil roulant",
+      ],
     },
     "Crisis Support": {
       en: ["suicidal", "crisis", "self-harm", "kill myself", "emergency", "danger", "overdose", "distress"],
-      fr: ["suicidaire", "crise", "automutilation", "urgence", "danger", "overdose", "detresse"]
+      fr: ["suicidaire", "crise", "automutilation", "urgence", "danger", "overdose", "detresse"],
     },
     "Substance Use": {
-      en: ["addiction", "alcohol", "alcoholic", "drug", "drugs", "substance", "sober", "sobriety", "rehab", "recovery", "withdrawal", "drinking", "using", "high", "opioid", "heroin", "cocaine", "meth"],
-      fr: ["addiction", "alcool", "alcoolique", "drogue", "drogues", "substance", "dependance", "sevrage", "retraite", "recuperation", "consommation", "ivresse", "opioide", "heroine", "cocaïne"]
+      en: [
+        "addiction", "alcohol", "alcoholic", "drug", "drugs", "substance", "sober", "sobriety",
+        "rehab", "recovery", "withdrawal", "drinking", "using", "high", "opioid", "heroin",
+        "cocaine", "meth",
+        // Indirect
+        "cant stop drinking", "drinking too much", "drug problem", "substance abuse",
+        "need to get clean", "need to get sober", "relapse", "relapsed", "detox",
+        "needle exchange", "methadone", "naltrexone", "aa meeting", "na meeting",
+        "drinking every day", "cant function without", "dependent on",
+      ],
+      fr: [
+        "addiction", "alcool", "alcoolique", "drogue", "drogues", "substance", "dependance",
+        "sevrage", "retraite", "recuperation", "consommation", "ivresse", "opioide", "heroine",
+        "cocaïne",
+        // Indirect
+        "peux pas arreter de boire", "bois trop", "probleme de drogue", "abus de substance",
+        "besoin de me severer", "besoin darreter", "rechute", "detox",
+        "echanges de seringues", "methadone", "naltrexone", "reunion aa", "reunion na",
+        "bois tous les jours", "peux pas fonctionner sans", "dependant de",
+      ],
     },
     "Senior Services": {
-      en: ["senior", "elderly", "aging", "medicare", "social security", "retirement", "old age", "grandparent", "elder", "older adult"],
-      fr: ["senior", "personnes agees", "vieillissement", "retraite", "vieux", "grand-parent", "aine", "perte dautonomie", "maison de retraite"]
+      en: [
+        "senior", "elderly", "aging", "medicare", "social security", "retirement", "old age",
+        "grandparent", "elder", "older adult",
+        // Indirect
+        "retired", "pension", "senior center", "meals on wheels", "elder care", "caregiver",
+        "home bound", "homebound", "nursing home", "assisted living", "in home care",
+        "medicaid for seniors", "ssi", "supplemental security", "dementia", "alzheimer",
+        "mobility", "cant walk", "cant drive anymore", "falls", "falling",
+      ],
+      fr: [
+        "senior", "personnes agees", "vieillissement", "retraite", "vieux", "grand-parent",
+        "aine", "perte dautonomie", "maison de retraite",
+        // Indirect
+        "retraite", "pension", "centre pour seniors", "repas a domicile", "soins aux personnes agees",
+        "aidant", "aidante", "perdu lautonomie", "ehpad", "residence pour seniors",
+        "soins a domicile", "allocation", "demencre", "alzheimer",
+        "mobilite reduite", "peux plus marcher", "peux plus conduire", "chutes",
+      ],
     },
     "Veteran Services": {
-      en: ["veteran", "va ", "military", "gi bill", "vfw", "ptsd veteran", "discharge", "service member", "armed forces", "navy", "army", "marines", "air force", "coast guard"],
-      fr: ["ancien combattant", "militaire", "armee", "veteran"]
+      en: ["veteran", "va ", "military", "gi bill", "vfw", "ptsd veteran", "discharge",
+           "service member", "armed forces", "navy", "army", "marines", "air force", "coast guard"],
+      fr: ["ancien combattant", "militaire", "armee", "veteran"],
     },
   };
 
