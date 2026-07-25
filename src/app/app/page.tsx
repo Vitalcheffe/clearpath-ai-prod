@@ -79,6 +79,8 @@ interface ClassifyResponse {
   serviceArea?: string
   cityId?: string
   cityLabel?: string
+  country?: string | null
+  locale?: string
   debug?: DebugInfo
 }
 
