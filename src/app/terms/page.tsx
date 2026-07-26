@@ -35,6 +35,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -61,6 +62,8 @@ const sections = [
 ]
 
 export default function TermsPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   return (
     <div className="min-h-screen flex flex-col mesh-gradient-bg">
       <Navbar />
@@ -84,20 +87,21 @@ export default function TermsPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight"
               >
-                Terms of Service
+                {isFr ? "Conditions d'utilisation" : 'Terms of Service'}
               </motion.h1>
               <motion.p
                 variants={fadeInUp}
-                className="text-lg text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed"
+                className="text-lg text-gray-700 mt-4 max-w-2xl mx-auto leading-relaxed"
               >
-                Last updated: June 2026
+                {isFr ? 'Dernière mise à jour : Juin 2026' : 'Last updated: June 2026'}
               </motion.p>
               <motion.p
                 variants={fadeInUp}
-                className="text-[15px] text-gray-400 mt-2 max-w-xl mx-auto"
+                className="text-[15px] text-gray-600 mt-2 max-w-xl mx-auto"
               >
-                By using ClearPath AI, you agree to these terms. Please read them carefully —
-                they&apos;re written in plain language on purpose.
+                {isFr
+                  ? "En utilisant ClearPath AI, vous acceptez ces conditions. Veuillez les lire attentivement — elles sont rédigées en langage clair volontairement."
+                  : "By using ClearPath AI, you agree to these terms. Please read them carefully — they're written in plain language on purpose."}
               </motion.p>
             </motion.div>
           </div>

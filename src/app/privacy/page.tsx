@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useI18n } from '@/i18n'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -53,6 +54,8 @@ const sections = [
 ]
 
 export default function PrivacyPage() {
+  const { t } = useI18n()
+  const isFr = t.locale === 'fr'
   return (
     <div className="min-h-screen flex flex-col mesh-gradient-bg">
       <Navbar />
@@ -76,20 +79,21 @@ export default function PrivacyPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight"
               >
-                Privacy Policy
+                {isFr ? 'Politique de Confidentialité' : 'Privacy Policy'}
               </motion.h1>
               <motion.p
                 variants={fadeInUp}
-                className="text-lg text-gray-500 mt-4 max-w-2xl mx-auto leading-relaxed"
+                className="text-lg text-gray-700 mt-4 max-w-2xl mx-auto leading-relaxed"
               >
-                Last updated: June 2026
+                {isFr ? 'Dernière mise à jour : Juin 2026' : 'Last updated: June 2026'}
               </motion.p>
               <motion.p
                 variants={fadeInUp}
-                className="text-[15px] text-gray-400 mt-2 max-w-xl mx-auto"
+                className="text-[15px] text-gray-600 mt-2 max-w-xl mx-auto"
               >
-                ClearPath AI respects your privacy. This policy explains what data we collect,
-                how we use it, and the steps we take to protect it.
+                {isFr
+                  ? "ClearPath AI respecte votre vie privée. Cette politique explique quelles données nous collectons, comment nous les utilisons et les mesures que nous prenons pour les protéger."
+                  : 'ClearPath AI respects your privacy. This policy explains what data we collect, how we use it, and the steps we take to protect it.'}
               </motion.p>
             </motion.div>
           </div>
