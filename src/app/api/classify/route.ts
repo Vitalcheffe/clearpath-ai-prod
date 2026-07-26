@@ -1500,7 +1500,7 @@ export async function POST(request: NextRequest) {
         }],
         hasLocation: userLat !== undefined,
         outsideServiceArea: country
-          ? (frenchCityLabel === null)
+          ? false // French countries are ALWAYS in service area — country is supported
           : (cityMatch ? !cityMatch.isInServiceArea : false),
         serviceArea: country
           ? (frenchCityLabel
@@ -1645,28 +1645,29 @@ export async function POST(request: NextRequest) {
       ? CLARIFICATION_QUESTIONS[significantCategories[0].label] || null
       : null;
 
-    const categoriesWithResources = significantCategories.map(c => {
-      let resources;
-      if (country) {
-        // CRITICAL: French countries NEVER fall back to US resources.
-        // If the nearest city has no resources for this category,
-        // search ALL cities in the same country before giving up.
-        const frenchResources = getFrenchResourcesForCategory(c.label, country, userLat, userLng);
-        if (frenchResources.length > 0) {
-          resources = frenchResources;
+    const categoriesWithResources = significantCategories
+      .map(c => {
+        let resources;
+        if (country) {
+          // CRITICAL: French countries NEVER fall back to US resources.
+          // If the nearest city has no resources for this category,
+          // search ALL cities in the same country before giving up.
+          const frenchResources = getFrenchResourcesForCategory(c.label, country, userLat, userLng);
+          if (frenchResources.length > 0) {
+            resources = frenchResources;
+          } else {
+            // Search ALL cities in this country for this category
+            resources = getFrenchResourcesFromAnyCity(c.label, country);
+          }
         } else {
-          // Search ALL cities in this country for this category
-          resources = getFrenchResourcesFromAnyCity(c.label, country);
+          resources = getResourcesForCategory(c.label, cityId, userLat, userLng);
         }
-      } else {
-        resources = getResourcesForCategory(c.label, cityId, userLat, userLng);
-      }
 
-      return {
-        label: c.label,
-        confidence: Math.round(c.score * 100),
-        resources,
-        why: isFrench
+        return {
+          label: c.label,
+          confidence: Math.round(c.score * 100),
+          resources,
+          why: isFrench
           ? (classificationSource === 'bart'
             ? `Correspondance par analyse sémantique mDeBERTa-v3 de votre description.`
             : `Correspondance par analyse de mots-clés. Pour des résultats plus précis, la classification IA nécessite une clé API.`)
@@ -1684,7 +1685,9 @@ export async function POST(request: NextRequest) {
             : `${Math.round(c.score * 100)}% confidence — consider providing more detail for a better match`)
           : undefined,
       };
-    });
+    })
+    // Filter out categories with 0 resources — don't show empty categories
+    .filter(c => c.resources.length > 0);
 
     const noResults = categoriesWithResources.length === 0;
 
@@ -1729,7 +1732,7 @@ export async function POST(request: NextRequest) {
       classificationSource,
       hasLocation: userLat !== undefined,
       outsideServiceArea: country
-        ? (frenchCityLabel === null)
+        ? false // French countries are ALWAYS in service area
         : (cityMatch ? !cityMatch.isInServiceArea : false),
       serviceArea: serviceAreaLabel,
       cityId: country ? null : cityId,
