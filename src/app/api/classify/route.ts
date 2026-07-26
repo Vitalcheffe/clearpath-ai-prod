@@ -1090,6 +1090,46 @@ function getFrenchResourcesForCategory(
   }));
 }
 
+// ─── FRENCH RESOURCES FROM ANY CITY IN COUNTRY ────────────
+// When the nearest city has no resources for a category, search ALL cities
+// in the same country. NEVER fall back to US resources for French countries.
+function getFrenchResourcesFromAnyCity(
+  category: string,
+  countryId: string
+): Array<{
+  name: string;
+  detail: string;
+  phone?: string;
+  address?: string;
+  hours?: string;
+  eligibility?: string;
+  verified: string;
+  distance: string;
+}> {
+  const countryInfo = SUPPORTED_COUNTRIES.find(c => c.id === countryId);
+  const countryFlag = countryInfo?.flag ?? '📍';
+  const cities = getCitiesForCountry(countryId);
+  const allResults: any[] = [];
+
+  for (const city of cities) {
+    const cityResources = getResourcesForCityByAnyCategory(city.id, category);
+    for (const r of cityResources) {
+      allResults.push({
+        name: r.name,
+        detail: r.description + (r.phone ? ` Appelez le ${r.phone}` : '') + (r.hours ? ` Horaires: ${r.hours}` : ''),
+        phone: r.phone,
+        address: r.address,
+        hours: r.hours,
+        eligibility: r.eligibility,
+        verified: r.verified,
+        distance: `${countryFlag} ${city.nameFr}`,
+      });
+    }
+  }
+
+  return allResults;
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // HYBRID CLASSIFICATION — combine keyword + AI for best accuracy
 // ════════════════════════════════════════════════════════════════════════════
@@ -1608,10 +1648,16 @@ export async function POST(request: NextRequest) {
     const categoriesWithResources = significantCategories.map(c => {
       let resources;
       if (country) {
+        // CRITICAL: French countries NEVER fall back to US resources.
+        // If the nearest city has no resources for this category,
+        // search ALL cities in the same country before giving up.
         const frenchResources = getFrenchResourcesForCategory(c.label, country, userLat, userLng);
-        resources = frenchResources.length > 0
-          ? frenchResources
-          : getResourcesForCategory(c.label, cityId, userLat, userLng);
+        if (frenchResources.length > 0) {
+          resources = frenchResources;
+        } else {
+          // Search ALL cities in this country for this category
+          resources = getFrenchResourcesFromAnyCity(c.label, country);
+        }
       } else {
         resources = getResourcesForCategory(c.label, cityId, userLat, userLng);
       }
