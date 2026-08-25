@@ -7,7 +7,7 @@
 [![USAII Hackathon Winner](https://img.shields.io/badge/USAII%20Hackathon%202026-Winner%20Community%20Track-gold?style=flat-square)](#team)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![BART-large-MNLI](https://img.shields.io/badge/NLP-BART--large--MNLI-orange?style=flat-square)](https://huggingface.co/ProsusAI/finbert)
+[![BART-large-MNLI](https://img.shields.io/badge/NLP-BART--large--MNLI-orange?style=flat-square)](https://huggingface.co/facebook/bart-large-mnli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 6-layer pipeline · 175 crisis regex patterns · 8 BART classification labels · 6 US cities · Confidence-gated clarification · Human escalation · Built in June 2026 by 2 high school students
